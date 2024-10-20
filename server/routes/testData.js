@@ -5,9 +5,9 @@ import KPI from "../models/KPI.js";
 
 const router = express.Router();
 
-router.get("/AAPL", async (req, res) => {
-  // const symbol = req.params.symbol;
-  const symbol = "AAPL";
+router.get("/:symbol", async (req, res) => {
+  const symbol = req.params.symbol;
+  // const symbol = "AAPL";
   const apiKey = "ZDp5hlgcxU3QMWGPuUAmU9EtVPSy9ELW";
   const from = "2023-01-09";
   const to = "2023-02-10";
@@ -38,8 +38,7 @@ router.get("/AAPL", async (req, res) => {
     };
   });
   try {
-    console.log(mod_res);
-    res.json(mod_res);
+    res.json(modified_res);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }

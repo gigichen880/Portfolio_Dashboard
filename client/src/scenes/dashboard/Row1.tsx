@@ -3,8 +3,10 @@ import DashboardBox from "@/components/DashboardBox";
 import { useGetKpisQuery, useGetCandlesQuery } from "@/state/api";
 import { useTheme } from "@mui/material";
 import { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
+  ComposedChart,
   CartesianGrid,
   AreaChart,
   BarChart,
@@ -18,12 +20,42 @@ import {
   Area,
 } from "recharts";
 
+import axios from "axios";
+
 const Row1 = () => {
+  const [candleStickData, setCandleStickData] = useState([]);
   const { palette } = useTheme();
   const { data } = useGetKpisQuery();
-  // const info = { symbol: "AAPL" };
-  const { candleData } = useGetCandlesQuery();
-  console.log(candleData);
+
+  const fetchCandlestickData = async () => {
+    const sym = "AAPL";
+    const from = "2023-01-09";
+    const to = "2023-02-10";
+    const numSpan = 1;
+    const timeSpan = "day";
+    try {
+      const response = await axios.get(`http://localhost:1337/candle/${sym}`, {
+        params: {
+          symbol: sym,
+          from: from,
+          to: to,
+          numSpan: numSpan,
+          timeSpan: timeSpan,
+        },
+      });
+      setCandleStickData(response.data);
+
+      console.log(candleStickData);
+      // Plot your candlestick chart using the fetched data
+    } catch (e) {
+      alert("An error occurred while fetching data");
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchCandlestickData(); // Call the async function when the component mounts
+  }, []);
 
   const revenue = useMemo(() => {
     return (
@@ -71,73 +103,56 @@ const Row1 = () => {
           subtitle="top line represents revenue, bottom line represents expenses"
           sideText="+4%"
         />
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            width={500}
-            height={400}
-            data={revenueExpenses}
-            margin={{
-              top: 15,
-              right: 25,
-              left: -10,
-              bottom: 60,
-            }}
-          >
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={palette.primary[300]}
-                  stopOpacity={0.5}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={palette.primary[300]}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-              <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={palette.primary[300]}
-                  stopOpacity={0.5}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={palette.primary[300]}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="name"
-              tickLine={false}
-              style={{ fontSize: "10px" }}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={{ strokeWidth: "0" }}
-              style={{ fontSize: "10px" }}
-              domain={[8000, 23000]}
-            />
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={candleStickData}>
+            <CartesianGrid vertical={false} stroke={palette.grey[800]} />
+            <XAxis dataKey="time" />
+            <YAxis />
             <Tooltip />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              dot={true}
-              stroke={palette.primary.main}
-              fillOpacity={1}
-              fill="url(#colorRevenue)"
+
+            {/* Vertical lines for high-low */}
+            <Bar
+              dataKey="low"
+              fillOpacity={0}
+              shape={({ x, y, width, height, payload }) => {
+                const highY = y - (payload.high - payload.low);
+                const lowY = y;
+                return (
+                  <rect
+                    x={x + width / 2 - 1}
+                    y={highY}
+                    width={2}
+                    height={lowY - highY}
+                    fill="black"
+                  />
+                );
+              }}
             />
-            <Area
-              type="monotone"
-              dataKey="expenses"
-              dot={true}
-              stroke={palette.primary.main}
-              fillOpacity={1}
-              fill="url(#colorExpenses)"
+
+            <Bar
+              dataKey="open"
+              fillOpacity={0}
+              shape={({ x, y, width, height, payload }) => {
+                const openY =
+                  payload.open > payload.close
+                    ? y
+                    : y - (payload.close - payload.open);
+                const closeY =
+                  payload.open > payload.close
+                    ? y - (payload.open - payload.close)
+                    : y;
+                return (
+                  <rect
+                    x={x + width / 4}
+                    y={openY}
+                    width={width / 2}
+                    height={Math.abs(closeY - openY)}
+                    fill={payload.open > payload.close ? "red" : "green"}
+                  />
+                );
+              }}
             />
-          </AreaChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </DashboardBox>
       <DashboardBox gridArea="b">
@@ -153,29 +168,21 @@ const Row1 = () => {
             <LineChart
               width={500}
               height={400}
-              data={revenueProfit}
+              data={candleStickData}
               margin={{
                 top: 20,
-                right: 0,
+                right: 20,
                 left: -10,
                 bottom: 55,
               }}
             >
               <CartesianGrid vertical={false} stroke={palette.grey[800]} />
               <XAxis
-                dataKey="name"
+                dataKey="time"
                 tickLine={false}
                 style={{ fontSize: "10px" }}
               />
               <YAxis
-                yAxisId="left"
-                tickLine={false}
-                axisLine={false}
-                style={{ fontSize: "10px" }}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
                 tickLine={false}
                 axisLine={false}
                 style={{ fontSize: "10px" }}
@@ -187,18 +194,8 @@ const Row1 = () => {
                   margin: "0 0 10px 0",
                 }}
               />
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="profit"
-                stroke={palette.tertiary[500]}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="revenue"
-                stroke={palette.primary.main}
-              />
+
+              <Line type="monotone" dataKey="close" stroke="#8884d8" />
             </LineChart>
           </ResponsiveContainer>
         }
