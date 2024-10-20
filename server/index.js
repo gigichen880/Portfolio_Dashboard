@@ -6,8 +6,8 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
 import kpiRoutes from "./routes/kpi.js";
-import KPI from "./models/KPI.js";
-import { kpis } from "./data/data.js";
+
+import candleRoutes from "./routes/testData.js";
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -19,35 +19,19 @@ app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
-console.log(process.env.MONGO_URL);
-
-import yahooFinance from "yahoo-finance";
-
-app.get("/stock/:symbol", async (req, res) => {
-  const symbol = req.params.symbol;
-
-  try {
-    // Fetch stock data using yfinance
-    const result = await yahooFinance.historical({
-      symbol: symbol,
-      from: "2023-01-01",
-      to: "2023-10-01",
-      period: "d", // daily data
-    });
-    res.json(result);
-  } catch (error) {
-    console.error("Error fetching data from Yahoo Finance:", error);
-    res.status(500).json({ error: "Failed to fetch stock data" });
-  }
-});
 
 /* ROUTES */
 app.use("/kpi", kpiRoutes);
+app.use("/candle", candleRoutes);
 
+const MONGO_URL =
+  "mongodb+srv://breechen88:Bree20058874824*@findash.lb1gi.mongodb.net/?retryWrites=true&w=majority&appName=FinDash";
+
+console.log(MONGO_URL);
 /* MONGOOSE SETUP */
-const PORT = process.env.PORT || 9000;
+const PORT = 1337 || 9000;
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(MONGO_URL, {
     // useNewUrlParser: true,
     // useUnifiedTopology: true,
   })

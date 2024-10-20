@@ -1,6 +1,6 @@
 import BoxHeader from "@/components/BoxHeader";
 import DashboardBox from "@/components/DashboardBox";
-import { useGetKpisQuery } from "@/state/api";
+import { useGetKpisQuery, useGetCandlesQuery } from "@/state/api";
 import { useTheme } from "@mui/material";
 import { useMemo } from "react";
 import {
@@ -17,25 +17,13 @@ import {
   Tooltip,
   Area,
 } from "recharts";
-// import getStockData from "../../../../server/data/testData.js";
-
-const getStockData = async (symbol) => {
-  const url = `http://localhost:3000/stock/${symbol}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    console.log(data);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-};
-
-getStockData("AAPL");
 
 const Row1 = () => {
   const { palette } = useTheme();
   const { data } = useGetKpisQuery();
+  // const info = { symbol: "AAPL" };
+  const { candleData } = useGetCandlesQuery();
+  console.log(candleData);
 
   const revenue = useMemo(() => {
     return (

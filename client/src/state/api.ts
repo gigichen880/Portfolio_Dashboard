@@ -3,13 +3,18 @@ import {
   GetKpisResponse,
   GetProductsResponse,
   GetTransactionsResponse,
+  GetCandleResponse,
 } from "./types";
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:1337" }),
   reducerPath: "main",
-  tagTypes: ["Kpis", "Products", "Transactions"],
+  tagTypes: ["Candles", "Kpis", "Products", "Transactions"],
   endpoints: (build) => ({
+    getCandles: build.query<Array<GetCandleResponse>, void>({
+      query: () => "candle/AAPL",
+      providesTags: ["Candles"],
+    }),
     getKpis: build.query<Array<GetKpisResponse>, void>({
       query: () => "kpi/kpis/",
       providesTags: ["Kpis"],
@@ -25,5 +30,9 @@ export const api = createApi({
   }),
 });
 
-export const { useGetKpisQuery, useGetProductsQuery, useGetTransactionsQuery } =
-  api;
+export const {
+  useGetCandlesQuery,
+  useGetKpisQuery,
+  useGetProductsQuery,
+  useGetTransactionsQuery,
+} = api;

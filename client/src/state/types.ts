@@ -4,6 +4,17 @@ export interface ExpensesByCategory {
   services: number;
 }
 
+export interface GetCandleResponse {
+  time: string;
+  high: number;
+  low: number;
+  close: number;
+  open: number;
+  numTx: number;
+  volume: number;
+  volWeightedAvgPrice: number;
+}
+
 export interface Month {
   id: string;
   month: string;
