@@ -176,7 +176,7 @@ const Row1 = () => {
         <StockForm onSubmit={handleSubmit} />
 
         {
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="45%">
             <LineChart
               width={500}
               height={400}

@@ -131,19 +131,21 @@ const StockForm = ({ onSubmit }) => {
               </Grid>
 
               <Grid item xs={12}>
-                <button
-                  type="submit"
-                  style={{
-                    padding: "0.75rem 1.5rem",
-                    backgroundColor: palette.primary.main,
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                    marginTop: "1rem",
-                  }}
-                >
-                  Fetch Data
-                </button>
+                <Box display="flex" justifyContent="center">
+                  <button
+                    type="submit"
+                    style={{
+                      padding: "0.75rem 1.5rem",
+                      backgroundColor: palette.primary.main,
+                      color: "#fff",
+                      border: "none",
+                      cursor: "pointer",
+                      marginTop: "1rem",
+                    }}
+                  >
+                    Fetch Data
+                  </button>
+                </Box>
               </Grid>
             </Grid>
           </form>
