@@ -12,7 +12,7 @@ router.get("/:symbol", async (req, res) => {
   const to = req.query.to;
   const numSpan = req.query.numSpan;
   const timeSpan = req.query.timeSpan;
-  console.log(to);
+  console.log(timeSpan);
   const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/${numSpan}/${timeSpan}/${from}/${to}?adjusted=true&sort=asc&apiKey=${apiKey}`;
 
   const result = await axios.get(url);
