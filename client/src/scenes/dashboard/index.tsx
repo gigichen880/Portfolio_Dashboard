@@ -64,7 +64,7 @@ const Dashboard = () => {
               gridTemplateAreas: gridTemplateLargeScreens,
             }
           : {
-              gridAutoColumns: "1fr",
+              gridAutoColumns: "2fr",
               gridAutoRows: "80px",
               gridTemplateAreas: gridTemplateSmallScreens,
             }

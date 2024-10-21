@@ -1,17 +1,42 @@
 // StockForm.js
 import React, { useState } from "react";
 import FlexBetween from "./FlexBetween";
-import { Box, Typography, useTheme, Grid } from "@mui/material";
+import {
+  Box,
+  Typography,
+  useTheme,
+  Grid,
+  Button,
+  Chip,
+  TextField,
+} from "@mui/material";
 
 const StockForm = ({ onSubmit }) => {
-  const [symbol, setSymbol] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [numSpan, setNumSpan] = useState("");
   const [timeSpan, setTimeSpan] = useState("day");
+  const [symbol, setSymbol] = useState([]);
+  const [symbolInput, setSymbolInput] = useState("");
+
+  // Function to handle adding new symbols
+  const addSymbol = () => {
+    if (symbolInput.trim() !== "" && !symbol.includes(symbolInput)) {
+      setSymbol((prevSymbols) => [...prevSymbols, symbolInput]);
+      setSymbolInput(""); // Clear input after adding
+    }
+  };
+
+  // Function to handle removing a symbol
+  const removeSymbol = (symbolToRemove) => {
+    setSymbol((prevSymbols) =>
+      prevSymbols.filter((symbol) => symbol !== symbolToRemove)
+    );
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(symbol);
     const formData = {
       symbol,
       from: fromDate,
@@ -22,31 +47,38 @@ const StockForm = ({ onSubmit }) => {
     onSubmit(formData); // Pass the form data back to the parent component
   };
   const { palette } = useTheme();
+
   return (
     <FlexBetween color={palette.grey[400]} margin="1.5rem 1rem 0 1rem">
       <FlexBetween>
+        <form onSubmit={handleSubmit}></form>
+
         <Box width="100%">
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <label>
-                  Stock Symbol:
-                  <input
-                    type="text"
-                    value={symbol}
-                    onChange={(e) => setSymbol(e.target.value)}
-                    required
-                    style={{
-                      backgroundColor: "#bfbfbf", // Light grey background
-                      border: "1px solid #ccc", // Optional border color
-                      color: "#333",
-                      width: "100%",
-                      padding: "0.5rem",
-                      marginTop: "0.25rem",
-                    }}
+              {/* Input for adding new stock symbols */}
+              <TextField
+                label="Add Stock Symbol"
+                value={symbolInput}
+                onChange={(e) => setSymbolInput(e.target.value)}
+                size="small"
+                style={{ marginRight: "10px" }}
+              />
+              <Button variant="contained" color="primary" onClick={addSymbol}>
+                Add
+              </Button>
+
+              {/* Render the list of symbols as chips/tags */}
+              <Box style={{ marginTop: "10px" }}>
+                {symbol.map((symbol) => (
+                  <Chip
+                    key={symbol}
+                    label={symbol}
+                    onDelete={() => removeSymbol(symbol)}
+                    style={{ marginRight: "5px", marginBottom: "5px" }}
                   />
-                </label>
-              </Grid>
+                ))}
+              </Box>
 
               <Grid item xs={6}>
                 <label>
