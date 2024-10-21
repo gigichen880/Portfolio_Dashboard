@@ -7,13 +7,14 @@ const router = express.Router();
 
 router.get("/:symbol", async (req, res) => {
   const symbol = req.params.symbol;
-  // const symbol = "AAPL";
   const apiKey = "ZDp5hlgcxU3QMWGPuUAmU9EtVPSy9ELW";
-  const from = "2023-01-09";
-  const to = "2023-02-10";
-  const numSpan = 1;
-  const timeSpan = "day";
+  const from = req.query.from;
+  const to = req.query.to;
+  const numSpan = req.query.numSpan;
+  const timeSpan = req.query.timeSpan;
+  console.log(to);
   const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/${numSpan}/${timeSpan}/${from}/${to}?adjusted=true&sort=asc&apiKey=${apiKey}`;
+
   const result = await axios.get(url);
   const mod_res = result.data.results;
 

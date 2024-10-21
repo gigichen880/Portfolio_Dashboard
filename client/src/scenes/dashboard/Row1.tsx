@@ -4,6 +4,8 @@ import { useGetKpisQuery, useGetCandlesQuery } from "@/state/api";
 import { useTheme } from "@mui/material";
 import { useMemo } from "react";
 import React, { useEffect, useState } from "react";
+import StockForm from "@/components/FieldSelection";
+
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -24,39 +26,46 @@ import axios from "axios";
 
 const Row1 = () => {
   const [candleStickData, setCandleStickData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState(null);
   const { palette } = useTheme();
   const { data } = useGetKpisQuery();
 
-  const fetchCandlestickData = async () => {
-    const sym = "AAPL";
-    const from = "2023-01-09";
-    const to = "2023-02-10";
-    const numSpan = 1;
-    const timeSpan = "day";
+  const fetchCandlestickData = async (cData) => {
+    setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:1337/candle/${sym}`, {
-        params: {
-          symbol: sym,
-          from: from,
-          to: to,
-          numSpan: numSpan,
-          timeSpan: timeSpan,
-        },
-      });
-      setCandleStickData(response.data);
+      console.log(cData.from);
+      console.log(cData.to);
+      console.log(cData.numSpan);
+      console.log(cData.timeSpan);
+      console.log(cData.symbol);
+      // Construct the URL with parameters based on user input
+      const response = await axios.get(
+        `http://localhost:1337/candle/${cData.symbol}`,
+        {
+          params: {
+            // symbol: formData.symbol,
+            from: cData.from,
+            to: cData.to,
+            numSpan: cData.numSpan,
+            timeSpan: cData.timeSpan,
+          },
+        }
+      );
 
-      console.log(candleStickData);
-      // Plot your candlestick chart using the fetched data
+      setCandleStickData(response.data); // Store the transformed data in state
     } catch (e) {
       alert("An error occurred while fetching data");
       console.error(e);
+    } finally {
+      setLoading(false); // Set loading to false when done
     }
   };
 
-  useEffect(() => {
-    fetchCandlestickData(); // Call the async function when the component mounts
-  }, []);
-
+  const handleSubmit = (data) => {
+    setFormData(data); // Save form data on submit
+    fetchCandlestickData(data); // Call fetch function with the submitted data
+  };
   const revenue = useMemo(() => {
     return (
       data &&
@@ -155,6 +164,7 @@ const Row1 = () => {
           </ComposedChart>
         </ResponsiveContainer>
       </DashboardBox>
+
       <DashboardBox gridArea="b">
         {
           <BoxHeader
@@ -163,6 +173,8 @@ const Row1 = () => {
             sideText="+4%"
           />
         }
+        <StockForm onSubmit={handleSubmit} />
+
         {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -200,55 +212,8 @@ const Row1 = () => {
           </ResponsiveContainer>
         }
       </DashboardBox>
-      <DashboardBox gridArea="c">
-        <BoxHeader
-          title="Revenue Month by Month"
-          subtitle="graph representing the revenue month by month"
-          sideText="+4%"
-        />
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            width={500}
-            height={300}
-            data={revenue}
-            margin={{
-              top: 17,
-              right: 15,
-              left: -5,
-              bottom: 58,
-            }}
-          >
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={palette.primary[300]}
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={palette.primary[300]}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} stroke={palette.grey[800]} />
-            <XAxis
-              dataKey="name"
-              axisLine={false}
-              tickLine={false}
-              style={{ fontSize: "10px" }}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              style={{ fontSize: "10px" }}
-            />
-            <Tooltip />
-            <Bar dataKey="revenue" fill="url(#colorRevenue)" />
-          </BarChart>
-        </ResponsiveContainer>
-      </DashboardBox>
+
+      <DashboardBox gridArea="c"></DashboardBox>
     </>
   );
 };
