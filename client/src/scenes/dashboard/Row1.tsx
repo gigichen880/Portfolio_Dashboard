@@ -40,20 +40,18 @@ const Row1 = () => {
       console.log(cData.timeSpan);
       console.log(cData.symbol);
       // Construct the URL with parameters based on user input
-      const response = await axios.get(
-        `http://localhost:1337/candle/${cData.symbol}`,
-        {
-          params: {
-            // symbol: formData.symbol,
-            from: cData.from,
-            to: cData.to,
-            numSpan: cData.numSpan,
-            timeSpan: cData.timeSpan,
-          },
-        }
-      );
-
-      setCandleStickData(response.data); // Store the transformed data in state
+      const response = await axios.get(`http://localhost:1337/candle/symbols`, {
+        params: {
+          // symbol: formData.symbol,
+          from: cData.from,
+          to: cData.to,
+          numSpan: cData.numSpan,
+          timeSpan: cData.timeSpan,
+          symbol: cData.symbol,
+        },
+      });
+      console.log(response.data);
+      setCandleStickData(response.data);
     } catch (e) {
       alert("An error occurred while fetching data");
       console.error(e);
@@ -61,48 +59,43 @@ const Row1 = () => {
       setLoading(false); // Set loading to false when done
     }
   };
+  const mergeDatasets = (datasets) => {
+    const mergedData = {};
+
+    datasets.forEach((dataset, datasetIndex) => {
+      dataset.forEach((item) => {
+        const time = item.time;
+        if (!mergedData[time]) {
+          mergedData[time] = { time };
+        }
+        mergedData[time][`close_${datasetIndex}`] = item.close; // Store each symbol's close price with a unique key
+      });
+    });
+
+    // Convert mergedData object back into an array for charting
+    return Object.values(mergedData);
+  };
+
+  const mergedData = mergeDatasets(candleStickData);
 
   const handleSubmit = (data) => {
     setFormData(data); // Save form data on submit
     fetchCandlestickData(data); // Call fetch function with the submitted data
   };
-  const revenue = useMemo(() => {
-    return (
-      data &&
-      data[0].monthlyData.map(({ month, revenue }) => {
-        return {
-          name: month.substring(0, 3),
-          revenue: revenue,
-        };
-      })
-    );
-  }, [data]);
+  const getLineColor = (index) => {
+    // Define an array of colors to use for the lines
+    const colors = [
+      "#8884d8",
+      "#82ca9d",
+      "#ff7300",
+      "#ff0000",
+      "#00C49F",
+      "#FFBB28",
+    ];
 
-  const revenueExpenses = useMemo(() => {
-    return (
-      data &&
-      data[0].monthlyData.map(({ month, revenue, expenses }) => {
-        return {
-          name: month.substring(0, 3),
-          revenue: revenue,
-          expenses: expenses,
-        };
-      })
-    );
-  }, [data]);
-
-  const revenueProfit = useMemo(() => {
-    return (
-      data &&
-      data[0].monthlyData.map(({ month, revenue, expenses }) => {
-        return {
-          name: month.substring(0, 3),
-          revenue: revenue,
-          profit: (revenue - expenses).toFixed(2),
-        };
-      })
-    );
-  }, [data]);
+    // Return a color based on the index, cycling through the array if there are more lines than colors
+    return colors[index % colors.length];
+  };
 
   return (
     <>
@@ -166,51 +159,49 @@ const Row1 = () => {
       </DashboardBox>
 
       <DashboardBox gridArea="b">
-        {
-          <BoxHeader
-            title="Profit and Revenue"
-            subtitle="top line represents revenue, bottom line represents expenses"
-            sideText="+4%"
-          />
-        }
+        <BoxHeader
+          title="Close Price"
+          subtitle="Multiple stock symbols displayed together"
+          sideText="+4%"
+        />
+
         <StockForm onSubmit={handleSubmit} />
 
-        {
-          <ResponsiveContainer width="100%" height="45%">
-            <LineChart
-              width={500}
-              height={400}
-              data={candleStickData}
-              margin={{
-                top: 20,
-                right: 20,
-                left: -10,
-                bottom: 55,
-              }}
-            >
-              <CartesianGrid vertical={false} stroke={palette.grey[800]} />
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                style={{ fontSize: "10px" }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                style={{ fontSize: "10px" }}
-              />
-              <Tooltip />
-              <Legend
-                height={20}
-                wrapperStyle={{
-                  margin: "0 0 10px 0",
-                }}
-              />
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={mergedData}
+            margin={{ top: 20, right: 20, left: -10, bottom: 55 }}
+          >
+            <CartesianGrid vertical={false} stroke={palette.grey[800]} />
+            <XAxis
+              dataKey="time"
+              tickLine={false}
+              style={{ fontSize: "10px" }}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              style={{ fontSize: "10px" }}
+            />
+            <Tooltip />
+            <Legend height={20} wrapperStyle={{ margin: "0 0 10px 0" }} />
 
-              <Line type="monotone" dataKey="close" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        }
+            {/* Render lines for each stock symbol */}
+            <Line
+              type="monotone"
+              dataKey="close_0"
+              stroke={getLineColor(0)}
+              name="Stock 1"
+            />
+            <Line
+              type="monotone"
+              dataKey="close_1"
+              stroke={getLineColor(1)}
+              name="Stock 2"
+            />
+            {/* Add more lines for additional stocks if needed */}
+          </LineChart>
+        </ResponsiveContainer>
       </DashboardBox>
 
       <DashboardBox gridArea="c"></DashboardBox>

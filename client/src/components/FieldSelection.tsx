@@ -62,7 +62,7 @@ const StockForm = ({ onSubmit }) => {
                 value={symbolInput}
                 onChange={(e) => setSymbolInput(e.target.value)}
                 size="small"
-                style={{ marginRight: "10px" }}
+                style={{ marginRight: "10px", color: "#ccc" }}
               />
               <Button variant="contained" color="primary" onClick={addSymbol}>
                 Add
