@@ -77,6 +77,7 @@ const Row1 = () => {
   };
 
   const mergedData = mergeDatasets(candleStickData);
+  const numberOfLines = candleStickData.length;
 
   const handleSubmit = (data) => {
     setFormData(data); // Save form data on submit
@@ -96,6 +97,15 @@ const Row1 = () => {
     // Return a color based on the index, cycling through the array if there are more lines than colors
     return colors[index % colors.length];
   };
+  const lines = Array.from({ length: numberOfLines }, (_, index) => (
+    <Line
+      key={index}
+      type="monotone"
+      dataKey={`close_${index}`} // Ensure your data keys are structured accordingly
+      stroke={getLineColor(index)} // Use your existing getLineColor function
+      name={`Stock ${index + 1}`} // Optional: customize the legend name
+    />
+  ));
 
   return (
     <>
@@ -187,19 +197,7 @@ const Row1 = () => {
             <Legend height={20} wrapperStyle={{ margin: "0 0 10px 0" }} />
 
             {/* Render lines for each stock symbol */}
-            <Line
-              type="monotone"
-              dataKey="close_0"
-              stroke={getLineColor(0)}
-              name="Stock 1"
-            />
-            <Line
-              type="monotone"
-              dataKey="close_1"
-              stroke={getLineColor(1)}
-              name="Stock 2"
-            />
-            {/* Add more lines for additional stocks if needed */}
+            {lines}
           </LineChart>
         </ResponsiveContainer>
       </DashboardBox>
