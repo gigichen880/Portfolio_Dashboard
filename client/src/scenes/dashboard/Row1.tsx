@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material";
 import { useMemo } from "react";
 import React, { useEffect, useState } from "react";
 import StockForm from "@/components/FieldSelection";
-
+// import { exec } from "child_process";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -30,7 +30,7 @@ const Row1 = () => {
   const [formData, setFormData] = useState(null);
   const { palette } = useTheme();
   const { data } = useGetKpisQuery();
-
+  const [symbolList, setSymbolList] = useState([]);
   const fetchCandlestickData = async (cData) => {
     setLoading(true);
     try {
@@ -39,6 +39,7 @@ const Row1 = () => {
       console.log(cData.numSpan);
       console.log(cData.timeSpan);
       console.log(cData.symbol);
+      setSymbolList(cData.symbol);
       // Construct the URL with parameters based on user input
       const response = await axios.get(`http://localhost:1337/candle/symbols`, {
         params: {
@@ -68,7 +69,7 @@ const Row1 = () => {
         if (!mergedData[time]) {
           mergedData[time] = { time };
         }
-        mergedData[time][`close_${datasetIndex}`] = item.close; // Store each symbol's close price with a unique key
+        mergedData[time][`close_${datasetIndex}`] = item.volWeightedAvgPrice; // Store each symbol's close price with a unique key
       });
     });
 
@@ -93,17 +94,20 @@ const Row1 = () => {
       "#00C49F",
       "#FFBB28",
     ];
-
-    // Return a color based on the index, cycling through the array if there are more lines than colors
     return colors[index % colors.length];
   };
+
+  const getSymName = (index) => {
+    return symbolList[index];
+  };
+
   const lines = Array.from({ length: numberOfLines }, (_, index) => (
     <Line
       key={index}
       type="monotone"
-      dataKey={`close_${index}`} // Ensure your data keys are structured accordingly
-      stroke={getLineColor(index)} // Use your existing getLineColor function
-      name={`Stock ${index + 1}`} // Optional: customize the legend name
+      dataKey={`close_${index}`}
+      stroke={getLineColor(index)}
+      name={getSymName(index)}
     />
   ));
 
@@ -116,55 +120,7 @@ const Row1 = () => {
           sideText="+4%"
         />
         <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={candleStickData}>
-            <CartesianGrid vertical={false} stroke={palette.grey[800]} />
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-
-            {/* Vertical lines for high-low */}
-            <Bar
-              dataKey="low"
-              fillOpacity={0}
-              shape={({ x, y, width, height, payload }) => {
-                const highY = y - (payload.high - payload.low);
-                const lowY = y;
-                return (
-                  <rect
-                    x={x + width / 2 - 1}
-                    y={highY}
-                    width={2}
-                    height={lowY - highY}
-                    fill="black"
-                  />
-                );
-              }}
-            />
-
-            <Bar
-              dataKey="open"
-              fillOpacity={0}
-              shape={({ x, y, width, height, payload }) => {
-                const openY =
-                  payload.open > payload.close
-                    ? y
-                    : y - (payload.close - payload.open);
-                const closeY =
-                  payload.open > payload.close
-                    ? y - (payload.open - payload.close)
-                    : y;
-                return (
-                  <rect
-                    x={x + width / 4}
-                    y={openY}
-                    width={width / 2}
-                    height={Math.abs(closeY - openY)}
-                    fill={payload.open > payload.close ? "red" : "green"}
-                  />
-                );
-              }}
-            />
-          </ComposedChart>
+          <StockForm onSubmit={handleSubmit} />
         </ResponsiveContainer>
       </DashboardBox>
 
@@ -175,9 +131,7 @@ const Row1 = () => {
           sideText="+4%"
         />
 
-        <StockForm onSubmit={handleSubmit} />
-
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height="90%">
           <LineChart
             data={mergedData}
             margin={{ top: 20, right: 20, left: -10, bottom: 55 }}
