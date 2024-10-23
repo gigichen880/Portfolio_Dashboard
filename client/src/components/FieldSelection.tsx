@@ -58,6 +58,7 @@ const StockForm = ({ onSubmit }) => {
             <Grid container spacing={2}>
               {/* Input for adding new stock symbols */}
               <TextField
+                color="#f8f8f8"
                 label="Add Stock Symbol"
                 value={symbolInput}
                 onChange={(e) => setSymbolInput(e.target.value)}
@@ -169,7 +170,7 @@ const StockForm = ({ onSubmit }) => {
                     style={{
                       padding: "0.75rem 1.5rem",
                       backgroundColor: palette.primary.main,
-                      color: "#fff",
+                      color: "#0a0a0a",
                       border: "none",
                       cursor: "pointer",
                       marginTop: "1rem",
