@@ -26,6 +26,10 @@ const Row1 = () => {
   const [closeArr, setCloseArr] = useState([]);
   const [retArr, setRetArr] = useState([]);
   const [dates, setDates] = useState([]);
+  const [weights, setWeights] = useState([]);
+  const [numData, setNumData] = useState();
+  const [portfolioRets, setPortfolioRets] = useState([]);
+
   const getLineColor = (index) => {
     const colors = [
       "#8884d8",
@@ -53,6 +57,7 @@ const Row1 = () => {
         cData.symbol
       );
       setSymbolList(cData.symbol);
+
       // Construct the URL with parameters based on user input
       const response = await axios.get(`http://localhost:1337/candle/symbols`, {
         params: {
@@ -63,7 +68,7 @@ const Row1 = () => {
           symbol: cData.symbol,
         },
       });
-
+      setWeights(cData.weight);
       setCandleStickData(response.data);
     } catch (e) {
       alert("An error occurred while fetching data");
@@ -73,14 +78,26 @@ const Row1 = () => {
     }
   };
 
-  function getReturn(arr) {
+  const getReturn = (arr) => {
     return arr
       .map((value, index) => {
         if (index === 0) return 0; // or any other value for the first element
         return (value - arr[index - 1]) / arr[index - 1];
       })
       .slice(1); // Remove the first element
-  }
+  };
+
+  const getPortfolioRet = (returnVals, weightVals) => {
+    let retPortArr = [];
+    for (let time = 1; time !== numData + 1; time++) {
+      let retNow = 0;
+      for (let sym = 0; sym !== symbolList.length; sym++) {
+        retNow += returnVals[sym][time] * weightVals[sym];
+      }
+      retPortArr.push(retNow);
+    }
+    setPortfolioRets(retPortArr.slice(0, -1));
+  };
 
   const mergeDatasets = (datasets) => {
     const mergedData = {};
@@ -100,47 +117,56 @@ const Row1 = () => {
     return symbolList[index];
   };
 
-  // This useEffect will run when candleStickData changes
   useEffect(() => {
-    const mergedData = mergeDatasets(candleStickData);
-    const numOfData = mergedData.length;
+    if (candleStickData.length > 0) {
+      const mergedData = mergeDatasets(candleStickData);
+      const numOfData = mergedData.length;
+      setNumData(numOfData);
 
-    const numberOfLines = candleStickData.length;
-    setDates(mergedData.map((data) => data.time)); // Set dates based on merged data
+      const numberOfLines = candleStickData.length;
+      setDates(mergedData.map((data) => data.time)); // Set dates based on merged data
 
-    let tmpArr = [];
-    let tmpRet = [];
-    for (let i = 0; i < numberOfLines; i++) {
-      let thisSym = [getSymName(i)];
-      for (let t = 0; t < numOfData; t++) {
-        let datum = mergedData[t][`close_${i}`];
-        thisSym.push(datum);
+      let tmpArr = [];
+      let tmpRet = [];
+      for (let i = 0; i < numberOfLines; i++) {
+        let thisSym = [getSymName(i)];
+        for (let t = 0; t < numOfData; t++) {
+          let datum = mergedData[t][`close_${i}`];
+          thisSym.push(datum);
+        }
+        tmpArr.push(thisSym);
+
+        // Calculate returns and keep the stock name as the first element
+        let thisRet = [getSymName(i), ...getReturn(thisSym.slice(1))];
+        tmpRet.push(thisRet);
       }
-      tmpArr.push(thisSym);
 
-      // Calculate returns and keep the stock name as the first element
-      let thisRet = [getSymName(i), ...getReturn(thisSym.slice(1))];
-      tmpRet.push(thisRet);
+      setCloseArr(tmpArr);
+      setRetArr(tmpRet);
     }
-
-    setCloseArr(tmpArr);
-    setRetArr(tmpRet);
   }, [candleStickData]); // Depend on candleStickData
 
-  console.log(retArr);
+  useEffect(() => {
+    if (retArr.length > 0 && weights.length > 0 && numData) {
+      getPortfolioRet(retArr, weights);
+    }
+  }, [retArr, weights, numData]);
 
   const handleSubmit = (data) => {
     setFormData(data); // Save form data on submit
     fetchCandlestickData(data); // Call fetch function with the submitted data
   };
 
-  const MultiLineChart = ({ stockReturns, dates }) => {
+  const MultiLineChart = ({ stockReturns, dates, portfolioRets }) => {
     // Transform the returns into a format usable by Recharts
+    console.log(portfolioRets);
     const transformedData = dates.map((date, index) => {
       const result = { name: date };
       stockReturns.forEach((stock) => {
         result[stock[0]] = stock[index + 1]; // +1 because the first element is the stock name
       });
+      result["Portfolio"] = portfolioRets[index];
+
       return result;
     });
 
@@ -161,6 +187,13 @@ const Row1 = () => {
               activeDot={{ r: 8 }}
             />
           ))}
+          <Line
+            type="monotone"
+            dataKey="Portfolio"
+            stroke="#acb89b" // Black color for the portfolio line
+            activeDot={{ r: 8 }}
+            strokeWidth={3}
+          />
         </LineChart>
       </ResponsiveContainer>
     );
@@ -182,7 +215,11 @@ const Row1 = () => {
           sideText="+4%"
         />
         <ResponsiveContainer width="100%" height="100%">
-          <MultiLineChart stockReturns={retArr} dates={dates.slice(1)} />
+          <MultiLineChart
+            stockReturns={retArr}
+            dates={dates.slice(1)}
+            portfolioRets={portfolioRets}
+          />
         </ResponsiveContainer>
       </DashboardBox>
 
