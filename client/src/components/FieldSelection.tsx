@@ -17,12 +17,28 @@ const StockForm = ({ onSubmit }) => {
   const [timeSpan, setTimeSpan] = useState("day");
   const [symbol, setSymbol] = useState([]);
   const [symbolInput, setSymbolInput] = useState("");
+  const [weight, setWeight] = useState([]);
+  const [weightInput, setWeightInput] = useState("");
+  const [pair, setPair] = useState([]);
 
   // Function to handle adding new symbols
   const addSymbol = () => {
+    let sym = null;
+    let wei = null;
     if (symbolInput.trim() !== "" && !symbol.includes(symbolInput)) {
       setSymbol((prevSymbols) => [...prevSymbols, symbolInput]);
+      sym = symbolInput;
       setSymbolInput(""); // Clear input after adding
+    }
+    if (!weight.includes(weightInput)) {
+      setWeight((prevWeights) => [...prevWeights, weightInput]);
+      wei = weightInput;
+      setWeightInput(""); // Clear input after adding
+    }
+
+    if (sym !== null && wei !== null) {
+      const currPair = [sym, wei];
+      setPair((prevPairs) => [...prevPairs, currPair]);
     }
   };
 
@@ -32,12 +48,13 @@ const StockForm = ({ onSubmit }) => {
       prevSymbols.filter((symbol) => symbol !== symbolToRemove)
     );
   };
-
+  console.log(pair);
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(symbol);
     const formData = {
       symbol,
+      weight,
       from: fromDate,
       to: toDate,
       numSpan,
@@ -60,6 +77,25 @@ const StockForm = ({ onSubmit }) => {
                   label="Add Stock Symbol"
                   value={symbolInput}
                   onChange={(e) => setSymbolInput(e.target.value)}
+                  size="small"
+                  style={{ marginRight: "20px" }}
+                  color="#bfbfbf"
+                  InputProps={{
+                    style: {
+                      color: "#bfbfbf", // Change input text color here
+                    },
+                  }}
+                  InputLabelProps={{
+                    style: {
+                      color: "#bfbfbf", // Change label color here if needed
+                    },
+                  }}
+                />
+
+                <TextField
+                  label="Set weight"
+                  value={weightInput}
+                  onChange={(e) => setWeightInput(e.target.value)}
                   size="small"
                   style={{ marginRight: "20px" }}
                   color="#bfbfbf"
