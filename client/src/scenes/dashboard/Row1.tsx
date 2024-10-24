@@ -167,11 +167,7 @@ const Row1 = () => {
   return (
     <>
       <DashboardBox gridArea="a">
-        <BoxHeader
-          title="Revenue and Expenses"
-          subtitle="top line represents revenue, bottom line represents expenses"
-          sideText="+4%"
-        />
+        <BoxHeader title="Exploration" subtitle="Customize your portfolio" />
         <ResponsiveContainer width="100%" height={300}>
           <StockForm onSubmit={handleSubmit} />
         </ResponsiveContainer>
@@ -183,7 +179,7 @@ const Row1 = () => {
           subtitle="Multiple stock symbols displayed together"
           sideText="+4%"
         />
-        <ResponsiveContainer width="100%" height="90%">
+        <ResponsiveContainer width="100%" height="100%">
           <MultiLineChart stockReturns={retArr} dates={dates.slice(1)} />
         </ResponsiveContainer>
       </DashboardBox>
