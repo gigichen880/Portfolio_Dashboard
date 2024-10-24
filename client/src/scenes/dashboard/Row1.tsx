@@ -63,7 +63,7 @@ const Row1 = () => {
           symbol: cData.symbol,
         },
       });
-      console.log(response.data);
+
       setCandleStickData(response.data);
     } catch (e) {
       alert("An error occurred while fetching data");
@@ -126,6 +126,8 @@ const Row1 = () => {
     setCloseArr(tmpArr);
     setRetArr(tmpRet);
   }, [candleStickData]); // Depend on candleStickData
+
+  console.log(retArr);
 
   const handleSubmit = (data) => {
     setFormData(data); // Save form data on submit
