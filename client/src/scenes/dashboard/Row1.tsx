@@ -89,10 +89,13 @@ const Row1 = () => {
 
   const getPortfolioRet = (returnVals, weightVals) => {
     let retPortArr = [];
+    const totalShares = weightVals.reduce((acc, val) => acc + Number(val), 0);
+    const alloc = weightVals.map((weight) => weight / totalShares);
+
     for (let time = 1; time !== numData + 1; time++) {
       let retNow = 0;
       for (let sym = 0; sym !== symbolList.length; sym++) {
-        retNow += returnVals[sym][time] * weightVals[sym];
+        retNow += returnVals[sym][time] * alloc[sym];
       }
       retPortArr.push(retNow);
     }
@@ -171,12 +174,14 @@ const Row1 = () => {
     });
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="97%" height="90%">
         <LineChart data={transformedData}>
-          <CartesianGrid strokeDasharray="3 3" />
+          {transformedData.length > 0 && (
+            <CartesianGrid strokeDasharray="5 5" />
+          )}
           <XAxis dataKey="name" />
           <YAxis />
-          <Tooltip />
+          <Tooltip formatter={(value) => value.toFixed(4)} />
           <Legend />
           {stockReturns.map((stock) => (
             <Line
