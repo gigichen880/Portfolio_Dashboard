@@ -74,7 +74,7 @@ const StockForm = ({ onSubmit }) => {
               {/* Input for adding new stock symbols */}
               <Grid item xs={8}>
                 <TextField
-                  label="Add Stock Symbol"
+                  label="Stock Symbol"
                   value={symbolInput}
                   onChange={(e) => setSymbolInput(e.target.value)}
                   size="small"
@@ -93,7 +93,7 @@ const StockForm = ({ onSubmit }) => {
                 />
 
                 <TextField
-                  label="Set weight"
+                  label="Number of Shares"
                   value={weightInput}
                   onChange={(e) => setWeightInput(e.target.value)}
                   size="small"
@@ -130,7 +130,7 @@ const StockForm = ({ onSubmit }) => {
                 >
                   {symbol.length === 0 ? (
                     <Typography variant="body2" color="#bfbfbf">
-                      No symbols added
+                      No symbols yet
                     </Typography>
                   ) : (
                     symbol.map((symbol) => (
@@ -138,7 +138,11 @@ const StockForm = ({ onSubmit }) => {
                         key={symbol}
                         label={symbol}
                         onDelete={() => removeSymbol(symbol)}
-                        style={{ marginBottom: "5px" }}
+                        style={{
+                          marginBottom: "5px",
+                          color: "white",
+                          backgroundColor: "#3f51b5",
+                        }}
                       />
                     ))
                   )}

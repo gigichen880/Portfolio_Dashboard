@@ -11,6 +11,7 @@ import {
   YAxis,
   Legend,
   Line,
+  Label,
   Tooltip,
   CartesianGrid,
 } from "recharts";
@@ -29,6 +30,7 @@ const Row1 = () => {
   const [weights, setWeights] = useState([]);
   const [numData, setNumData] = useState();
   const [portfolioRets, setPortfolioRets] = useState([]);
+  const [portfolioRisk, setPortfolioRisk] = useState(null);
 
   const getLineColor = (index) => {
     const colors = [
@@ -89,14 +91,32 @@ const Row1 = () => {
 
   const getPortfolioRet = (returnVals, weightVals) => {
     let retPortArr = [];
+    const totalShares = weightVals.reduce((acc, val) => acc + Number(val), 0);
+    const alloc = weightVals.map((weight) => weight / totalShares);
+
     for (let time = 1; time !== numData + 1; time++) {
       let retNow = 0;
       for (let sym = 0; sym !== symbolList.length; sym++) {
-        retNow += returnVals[sym][time] * weightVals[sym];
+        retNow += returnVals[sym][time] * alloc[sym];
       }
       retPortArr.push(retNow);
     }
     setPortfolioRets(retPortArr.slice(0, -1));
+  };
+
+  const getPortfolioRisk = () => {
+    const avgReturn =
+      portfolioRets.reduce((acc, val) => acc + val, 0) / numData;
+    const portRisk =
+      Math.sqrt(
+        portfolioRets
+          .map((ret) => (ret - avgReturn) ** 2)
+          .reduce((acc, val) => acc + val, 0)
+      ) /
+      (numData - 1);
+    console.log("SHHH");
+    console.log(avgReturn);
+    setPortfolioRisk(portRisk);
   };
 
   const mergeDatasets = (datasets) => {
@@ -149,6 +169,7 @@ const Row1 = () => {
   useEffect(() => {
     if (retArr.length > 0 && weights.length > 0 && numData) {
       getPortfolioRet(retArr, weights);
+      getPortfolioRisk();
     }
   }, [retArr, weights, numData]);
 
@@ -159,7 +180,7 @@ const Row1 = () => {
 
   const MultiLineChart = ({ stockReturns, dates, portfolioRets }) => {
     // Transform the returns into a format usable by Recharts
-    console.log(portfolioRets);
+    console.log(portfolioRisk);
     const transformedData = dates.map((date, index) => {
       const result = { name: date };
       stockReturns.forEach((stock) => {
@@ -171,12 +192,22 @@ const Row1 = () => {
     });
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="97%" height="90%">
         <LineChart data={transformedData}>
-          <CartesianGrid strokeDasharray="3 3" />
+          {transformedData.length > 0 && (
+            <CartesianGrid strokeDasharray="5 5" />
+          )}
           <XAxis dataKey="name" />
           <YAxis />
-          <Tooltip />
+          <Label
+            value={`Risk: ${portfolioRisk}`} // Display risk value
+            angle={-90}
+            position="insideLeft"
+            offset={30}
+            style={{ textAnchor: "middle", fontSize: "14px", fill: "black" }}
+          />
+
+          <Tooltip formatter={(value) => value.toFixed(4)} />
           <Legend />
           {stockReturns.map((stock) => (
             <Line
@@ -187,14 +218,17 @@ const Row1 = () => {
               activeDot={{ r: 8 }}
             />
           ))}
-          <Line
-            type="monotone"
-            dataKey="Portfolio"
-            stroke="#acb89b" // Black color for the portfolio line
-            activeDot={{ r: 8 }}
-            strokeWidth={3}
-          />
+          {transformedData.length > 0 && (
+            <Line
+              type="monotone"
+              dataKey="Portfolio"
+              stroke="#acb89b" // Black color for the portfolio line
+              activeDot={{ r: 8 }}
+              strokeWidth={3}
+            />
+          )}
         </LineChart>
+        {/* <div style={{ color: "black" }}>Risk: {portfolioRisk}</div> */}
       </ResponsiveContainer>
     );
   };
@@ -212,7 +246,7 @@ const Row1 = () => {
         <BoxHeader
           title="Daily Return Rates"
           subtitle="Multiple stock symbols displayed together"
-          sideText="+4%"
+          sideText={`Portfolio Risk: ${(portfolioRisk * 100).toFixed(4)}%`}
         />
         <ResponsiveContainer width="100%" height="100%">
           <MultiLineChart
