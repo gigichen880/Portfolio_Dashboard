@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
 import kpiRoutes from "./routes/kpi.js";
-
+import axios from "axios";
 import candleRoutes from "./routes/testData.js";
 
 /* CONFIGURATIONS */
@@ -26,6 +26,24 @@ app.use("/candle", candleRoutes);
 
 const MONGO_URL =
   "mongodb+srv://breechen88:Bree20058874824*@findash.lb1gi.mongodb.net/?retryWrites=true&w=majority&appName=FinDash";
+
+app.post("/api/optimize", async (req, res) => {
+  try {
+    console.log("Enter Express JS");
+    const symbols = req.body.symbols; // Symbols sent from React
+    const flaskResponse = await axios.post(
+      "http://127.0.0.1:5002/optimize-portfolio",
+      {
+        symbols,
+      }
+    );
+
+    res.json(flaskResponse.data); // Return Flask's response to React
+  } catch (error) {
+    console.error("Error fetching from Flask:", error);
+    res.status(500).send("Error in portfolio optimization");
+  }
+});
 
 console.log(MONGO_URL);
 /* MONGOOSE SETUP */

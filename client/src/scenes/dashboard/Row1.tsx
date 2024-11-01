@@ -7,6 +7,8 @@ import StockForm from "@/components/FieldSelection";
 import {
   ResponsiveContainer,
   LineChart,
+  ScatterChart,
+  Scatter,
   XAxis,
   YAxis,
   Legend,
@@ -14,7 +16,11 @@ import {
   Label,
   Tooltip,
   CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+
 import axios from "axios";
 
 const Row1 = () => {
@@ -31,7 +37,13 @@ const Row1 = () => {
   const [numData, setNumData] = useState();
   const [portfolioRets, setPortfolioRets] = useState([]);
   const [portfolioRisk, setPortfolioRisk] = useState(null);
-
+  const [weightPercent, setWeightPercent] = useState([]);
+  const [optimizedWeights, setOptimizedWeights] = useState(null);
+  const [mcRisks, setMcRisks] = useState(null);
+  const [mcReturns, setMcReturns] = useState(null);
+  const [imageData, setImageData] = useState(null);
+  const [mcRetRisk, setMcRetRisk] = useState(null);
+  const [ceilings, setCeilings] = useState([]);
   const getLineColor = (index) => {
     const colors = [
       "#8884d8",
@@ -80,6 +92,28 @@ const Row1 = () => {
     }
   };
 
+  const handleOptimize = async () => {
+    try {
+      console.log("Enter Optim", symbolList);
+      const response = await axios.post("http://localhost:1337/api/optimize", {
+        symbols: symbolList,
+      });
+      console.log("Response?", response);
+      setOptimizedWeights(response.data.weights);
+      setMcReturns(response.data.returns);
+      setMcRisks(response.data.risks);
+      const data = response.data.risks.map((risk, index) => ({
+        risk: risk,
+        return: response.data.returns[index],
+      }));
+      setMcRetRisk(data);
+      console.log("DATA?", mcRetRisk);
+      // setImageData(`data:image/png;base64,${response.data.image}`);
+    } catch (error) {
+      console.error("Error fetching optimized portfolio:", error);
+    }
+  };
+
   const getReturn = (arr) => {
     return arr
       .map((value, index) => {
@@ -93,6 +127,8 @@ const Row1 = () => {
     let retPortArr = [];
     const totalShares = weightVals.reduce((acc, val) => acc + Number(val), 0);
     const alloc = weightVals.map((weight) => weight / totalShares);
+    setWeightPercent(alloc);
+    console.log("Hey!", weightVals);
 
     for (let time = 1; time !== numData + 1; time++) {
       let retNow = 0;
@@ -102,21 +138,25 @@ const Row1 = () => {
       retPortArr.push(retNow);
     }
     setPortfolioRets(retPortArr.slice(0, -1));
+    getPortfolioRisk();
   };
 
   const getPortfolioRisk = () => {
-    const avgReturn =
-      portfolioRets.reduce((acc, val) => acc + val, 0) / numData;
-    const portRisk =
-      Math.sqrt(
-        portfolioRets
-          .map((ret) => (ret - avgReturn) ** 2)
-          .reduce((acc, val) => acc + val, 0)
-      ) /
-      (numData - 1);
-    console.log("SHHH");
-    console.log(avgReturn);
-    setPortfolioRisk(portRisk);
+    if (portfolioRets.length > 0) {
+      const avgReturn =
+        portfolioRets.reduce((acc, val) => acc + val, 0) / numData;
+      const portRisk =
+        Math.sqrt(
+          portfolioRets
+            .map((ret) => (ret - avgReturn) ** 2)
+            .reduce((acc, val) => acc + val, 0)
+        ) /
+        (numData - 1);
+      console.log("SHHH");
+      console.log(avgReturn);
+      console.log(portfolioRets);
+      setPortfolioRisk(portRisk);
+    }
   };
 
   const mergeDatasets = (datasets) => {
@@ -168,15 +208,25 @@ const Row1 = () => {
 
   useEffect(() => {
     if (retArr.length > 0 && weights.length > 0 && numData) {
+      console.log("Lets", weights);
       getPortfolioRet(retArr, weights);
-      getPortfolioRisk();
     }
   }, [retArr, weights, numData]);
+
+  useEffect(() => {
+    getPortfolioRisk(); // Call this whenever portfolioRets updates
+  }, [portfolioRets, numData, weights]); // Add necessary dependencies
 
   const handleSubmit = (data) => {
     setFormData(data); // Save form data on submit
     fetchCandlestickData(data); // Call fetch function with the submitted data
+    // handleOptimize();
   };
+  useEffect(() => {
+    if (symbolList.length > 0) {
+      handleOptimize();
+    }
+  }, [symbolList]); // This triggers when symbolList is updated
 
   const MultiLineChart = ({ stockReturns, dates, portfolioRets }) => {
     // Transform the returns into a format usable by Recharts
@@ -232,7 +282,82 @@ const Row1 = () => {
       </ResponsiveContainer>
     );
   };
+  const PortfolioPieChart = ({ portfolioWeights }) => {
+    // Define colors for each segment
+    const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+    console.log(weightPercent);
+    console.log(portfolioWeights);
+    return (
+      // <ResponsiveContainer width="97%" height="90%">
+      <PieChart width={400} height={400} cx="50%" cy="50%">
+        <Pie
+          data={portfolioWeights}
+          dataKey="weight"
+          nameKey="stock"
+          cx="50%"
+          cy="50%"
+          outerRadius={150}
+          label
+        >
+          {portfolioWeights.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+      // </ResponsiveContainer>
+    );
+  };
+  const portfolioWeights = symbolList.map((symbol, idx) => ({
+    stock: symbol,
+    weight: parseFloat((weightPercent[idx] ?? 0).toFixed(4)),
+  }));
 
+  useEffect(() => {
+    if (mcRetRisk != null) {
+      const data = mcRetRisk;
+      const risks = data.map((d) => d.risk);
+      const returns = data.map((d) => d.return);
+      const minRisk = Math.min(...risks);
+      const maxRisk = Math.max(...risks);
+      const minReturn = Math.min(...returns);
+      const maxReturn = Math.max(...returns);
+
+      setCeilings([
+        Math.floor(minRisk * 10) / 10, // Round down for a tighter view
+        Math.ceil(maxRisk * 10) / 10, // Round up to give space
+        Math.floor(minReturn * 10) / 10,
+        Math.ceil(maxReturn * 10) / 10,
+      ]);
+    }
+  }, [mcRetRisk]); // This triggers when symbolList is updated
+
+  const ReturnVsRiskScatterPlot = (ceilings) => (
+    <ResponsiveContainer width="100%" height={300}>
+      <ScatterChart>
+        <CartesianGrid />
+        <XAxis
+          type="number"
+          dataKey="risk"
+          name="Risk"
+          domain={[ceilings[0], ceilings[1]]}
+          unit="%"
+          label={{ value: "Risk (%)", position: "insideBottom", offset: -5 }}
+        />
+        <YAxis
+          type="number"
+          dataKey="return"
+          name="Return"
+          domain={[ceilings[2], ceilings[3]]}
+          unit="%"
+          label={{ value: "Return (%)", angle: -90, position: "insideLeft" }}
+        />
+        <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+        <Scatter name="Portfolio" data={mcRetRisk} fill="#82ca9d" />
+      </ScatterChart>
+    </ResponsiveContainer>
+  );
   return (
     <>
       <DashboardBox gridArea="a">
@@ -246,7 +371,9 @@ const Row1 = () => {
         <BoxHeader
           title="Daily Return Rates"
           subtitle="Multiple stock symbols displayed together"
-          sideText={`Portfolio Risk: ${(portfolioRisk * 100).toFixed(4)}%`}
+          sideText={`Portfolio Risk: ${
+            portfolioRisk ? (portfolioRisk * 100).toFixed(4) : "N/A"
+          }%`}
         />
         <ResponsiveContainer width="100%" height="100%">
           <MultiLineChart
@@ -257,7 +384,38 @@ const Row1 = () => {
         </ResponsiveContainer>
       </DashboardBox>
 
-      <DashboardBox gridArea="c"></DashboardBox>
+      <DashboardBox gridArea="c">
+        <ResponsiveContainer width="100%" height="100%">
+          <BoxHeader
+            title="Portfolio Composition"
+            subtitle="Customize your portfolio"
+          />
+          <PortfolioPieChart portfolioWeights={portfolioWeights} />
+        </ResponsiveContainer>
+      </DashboardBox>
+
+      <DashboardBox gridArea="d">
+        <h2>Optimized Weights</h2>
+        {/* Render only if optimizedWeights has data */}
+        {optimizedWeights ? (
+          <ul>
+            {optimizedWeights.map((weight, index) => (
+              <li key={index}>
+                Stock {symbolList[index]}: {weight.toFixed(2)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Loading optimized weights...</p>
+        )}
+        <h2>Monte Carlo Risks</h2>
+        <ReturnVsRiskScatterPlot ceilings={ceilings} />
+      </DashboardBox>
+
+      <DashboardBox gridArea="e"></DashboardBox>
+      <DashboardBox gridArea="f"></DashboardBox>
+
+      {/* <DashboardBox gridArea="c"></DashboardBox> */}
     </>
   );
 };

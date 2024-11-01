@@ -43,15 +43,17 @@ const StockForm = ({ onSubmit }) => {
   };
 
   // Function to handle removing a symbol
-  const removeSymbol = (symbolToRemove) => {
-    setSymbol((prevSymbols) =>
-      prevSymbols.filter((symbol) => symbol !== symbolToRemove)
+  const removePair = (pairToRemove) => {
+    setPair((prevPair) => prevPair.filter((pair) => pair !== pairToRemove));
+    setSymbol((prevSymbol) =>
+      prevSymbol.filter((symbol) => symbol !== pairToRemove[0])
+    );
+    setWeight((prevWeight) =>
+      prevWeight.filter((weight) => weight !== pairToRemove[1])
     );
   };
-  console.log(pair);
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(symbol);
     const formData = {
       symbol,
       weight,
@@ -73,47 +75,77 @@ const StockForm = ({ onSubmit }) => {
             <Grid container spacing={2}>
               {/* Input for adding new stock symbols */}
               <Grid item xs={8}>
-                <TextField
-                  label="Stock Symbol"
-                  value={symbolInput}
-                  onChange={(e) => setSymbolInput(e.target.value)}
-                  size="small"
-                  style={{ marginRight: "20px" }}
-                  color="#bfbfbf"
-                  InputProps={{
-                    style: {
-                      color: "#bfbfbf", // Change input text color here
-                    },
+                <Grid
+                  item
+                  xs={12}
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginTop: "10px",
                   }}
-                  InputLabelProps={{
-                    style: {
-                      color: "#bfbfbf", // Change label color here if needed
-                    },
-                  }}
-                />
+                >
+                  <TextField
+                    label="Stock Symbol"
+                    value={symbolInput}
+                    onChange={(e) => setSymbolInput(e.target.value)}
+                    size="small"
+                    style={{ marginLeft: "20px", marginRight: "10px" }}
+                    color="#bfbfbf"
+                    InputProps={{
+                      style: {
+                        color: "#bfbfbf", // Change input text color here
+                      },
+                    }}
+                    InputLabelProps={{
+                      style: {
+                        color: "#bfbfbf", // Change label color here if needed
+                      },
+                    }}
+                  />
 
-                <TextField
-                  label="Number of Shares"
-                  value={weightInput}
-                  onChange={(e) => setWeightInput(e.target.value)}
-                  size="small"
-                  style={{ marginRight: "20px" }}
-                  color="#bfbfbf"
-                  InputProps={{
-                    style: {
-                      color: "#bfbfbf", // Change input text color here
-                    },
+                  <TextField
+                    label="Number of Shares"
+                    value={weightInput}
+                    onChange={(e) => setWeightInput(e.target.value)}
+                    size="small"
+                    style={{ marginRight: "20px" }}
+                    color="#bfbfbf"
+                    InputProps={{
+                      style: {
+                        color: "#bfbfbf", // Change input text color here
+                      },
+                    }}
+                    InputLabelProps={{
+                      style: {
+                        color: "#bfbfbf", // Change label color here if needed
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid
+                  item
+                  xs={12}
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginTop: "10px",
                   }}
-                  InputLabelProps={{
-                    style: {
-                      color: "#bfbfbf", // Change label color here if needed
-                    },
-                  }}
-                />
-
-                <Button variant="contained" color="primary" onClick={addSymbol}>
-                  Add
-                </Button>
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={addSymbol}
+                    style={{
+                      padding: "0.5rem 4rem",
+                      backgroundColor: palette.primary.main,
+                      width: "40px",
+                      cursor: "pointer",
+                      marginTop: "1rem",
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Grid>
               </Grid>
 
               {/* Symbol list in a fixed column with scroll */}
@@ -133,11 +165,11 @@ const StockForm = ({ onSubmit }) => {
                       No symbols yet
                     </Typography>
                   ) : (
-                    symbol.map((symbol) => (
+                    pair.map((pair) => (
                       <Chip
-                        key={symbol}
-                        label={symbol}
-                        onDelete={() => removeSymbol(symbol)}
+                        key={pair}
+                        label={`${pair[0]} (${pair[1]} shares)`}
+                        onDelete={() => removePair(pair)}
                         style={{
                           marginBottom: "5px",
                           color: "white",
@@ -230,11 +262,11 @@ const StockForm = ({ onSubmit }) => {
 
               <Grid item xs={12}>
                 <Box display="flex" justifyContent="center">
-                  <button
+                  <Button
                     variant="contained"
                     type="submit"
                     style={{
-                      padding: "0.75rem 1.5rem",
+                      padding: "0.5rem 1.5rem",
                       backgroundColor: palette.primary.main,
                       border: "none",
                       cursor: "pointer",
@@ -242,7 +274,7 @@ const StockForm = ({ onSubmit }) => {
                     }}
                   >
                     Fetch Data
-                  </button>
+                  </Button>
                 </Box>
               </Grid>
             </Grid>
