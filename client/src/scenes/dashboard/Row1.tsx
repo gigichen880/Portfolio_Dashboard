@@ -2,7 +2,7 @@ import BoxHeader from "@/components/BoxHeader";
 import DashboardBox from "@/components/DashboardBox";
 import { useGetKpisQuery } from "@/state/api";
 import { useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import StockForm from "@/components/FieldSelection";
 import {
   ResponsiveContainer,
@@ -44,6 +44,7 @@ const Row1 = () => {
   const [imageData, setImageData] = useState(null);
   const [mcRetRisk, setMcRetRisk] = useState(null);
   const [ceilings, setCeilings] = useState([]);
+  const [renderOptimLine, setRenderOptimLine] = useState(false);
   const getLineColor = (index) => {
     const colors = [
       "#8884d8",
@@ -205,23 +206,41 @@ const Row1 = () => {
       setRetArr(tmpRet);
     }
   }, [candleStickData]); // Depend on candleStickData
-
+  console.log("rets", portfolioRets);
+  console.log("optimw", optimizedWeights);
   useEffect(() => {
     if (retArr.length > 0 && weights.length > 0 && numData) {
       console.log("Lets", weights);
       getPortfolioRet(retArr, weights);
+      if (optimizedWeights != null) {
+        getOptimizedRet(retArr, optimizedWeights);
+      }
     }
-  }, [retArr, weights, numData]);
+  }, [retArr, weights, numData, optimizedWeights]);
 
   useEffect(() => {
     getPortfolioRisk(); // Call this whenever portfolioRets updates
   }, [portfolioRets, numData, weights]); // Add necessary dependencies
 
-  const handleSubmit = (data) => {
-    setFormData(data); // Save form data on submit
-    fetchCandlestickData(data); // Call fetch function with the submitted data
-    // handleOptimize();
+  // const handleSubmit = (data) => {
+  //   setFormData(data); // Save form data on submit
+  //   fetchCandlestickData(data); // Call fetch function with the submitted data
+  //   // handleOptimize();
+  // };
+  // console.log(handleSubmit); // Should log the function
+  const handleSubmit = useCallback(
+    (data) => {
+      setFormData(data);
+      fetchCandlestickData(data);
+    },
+    [setFormData, fetchCandlestickData]
+  );
+
+  const handleOptimBtn = () => {
+    setRenderOptimLine(true);
+    console.log("Vuala!");
   };
+
   useEffect(() => {
     if (symbolList.length > 0) {
       handleOptimize();
@@ -363,7 +382,11 @@ const Row1 = () => {
       <DashboardBox gridArea="a">
         <BoxHeader title="Exploration" subtitle="Customize your portfolio" />
         <ResponsiveContainer width="100%" height={300}>
-          <StockForm onSubmit={handleSubmit} />
+          <StockForm
+            handleFormSubmit={handleSubmit}
+            ifGetOptim={optimizedWeights}
+            isOptimBtn={handleOptimBtn}
+          />
         </ResponsiveContainer>
       </DashboardBox>
 

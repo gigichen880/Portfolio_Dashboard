@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FlexBetween from "./FlexBetween";
 import {
   Box,
@@ -10,7 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 
-const StockForm = ({ onSubmit }) => {
+const StockForm = ({ handleFormSubmit, ifGetOptim, isOptimBtn }) => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [numSpan, setNumSpan] = useState("");
@@ -20,7 +20,8 @@ const StockForm = ({ onSubmit }) => {
   const [weight, setWeight] = useState([]);
   const [weightInput, setWeightInput] = useState("");
   const [pair, setPair] = useState([]);
-
+  const [optimReady, setOptimReady] = useState(false);
+  console.log(handleFormSubmit);
   // Function to handle adding new symbols
   const addSymbol = () => {
     let sym = null;
@@ -41,7 +42,11 @@ const StockForm = ({ onSubmit }) => {
       setPair((prevPairs) => [...prevPairs, currPair]);
     }
   };
-
+  useEffect(() => {
+    if (ifGetOptim != null) {
+      setOptimReady(true);
+    }
+  }, [ifGetOptim]);
   // Function to handle removing a symbol
   const removePair = (pairToRemove) => {
     setPair((prevPair) => prevPair.filter((pair) => pair !== pairToRemove));
@@ -52,7 +57,7 @@ const StockForm = ({ onSubmit }) => {
       prevWeight.filter((weight) => weight !== pairToRemove[1])
     );
   };
-  const handleSubmit = (e) => {
+  const handleFetchData = (e) => {
     e.preventDefault();
     const formData = {
       symbol,
@@ -62,7 +67,11 @@ const StockForm = ({ onSubmit }) => {
       numSpan,
       timeSpan,
     };
-    onSubmit(formData); // Pass the form data back to the parent component
+    handleFormSubmit(formData); // Fetch data
+  };
+
+  const handleGetOptimized = () => {
+    isOptimBtn();
   };
 
   const { palette } = useTheme();
@@ -71,7 +80,7 @@ const StockForm = ({ onSubmit }) => {
     <FlexBetween color={palette.grey[400]} margin="1.5rem 1rem 0 1rem">
       <FlexBetween>
         <Box width="100%">
-          <form onSubmit={handleSubmit}>
+          <form>
             <Grid container spacing={2}>
               {/* Input for adding new stock symbols */}
               <Grid item xs={8}>
@@ -264,7 +273,24 @@ const StockForm = ({ onSubmit }) => {
                 <Box display="flex" justifyContent="center">
                   <Button
                     variant="contained"
-                    type="submit"
+                    type="submit" // This button submits the form
+                    onClick={handleFetchData} // Handles Fetch Data
+                    style={{
+                      padding: "0.5rem 1.5rem",
+                      backgroundColor: palette.primary.main,
+                      border: "none",
+                      cursor: "pointer",
+                      marginTop: "1rem",
+                      marginRight: "5rem",
+                    }}
+                  >
+                    Fetch Data
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    disabled={!optimReady} // Enable based on condition
+                    onClick={handleGetOptimized} // Handles Get Optimized
                     style={{
                       padding: "0.5rem 1.5rem",
                       backgroundColor: palette.primary.main,
@@ -273,7 +299,7 @@ const StockForm = ({ onSubmit }) => {
                       marginTop: "1rem",
                     }}
                   >
-                    Fetch Data
+                    Get Optimized
                   </Button>
                 </Box>
               </Grid>

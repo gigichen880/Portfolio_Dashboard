@@ -10,10 +10,10 @@ const gridTemplateLargeScreens = `
   "a b b"
   "c b b"
   "c b b"
-  "c d e"
-  "c d e"
-  "c d f"
-  "c d f"
+  "c d d"
+  "c d d"
+  "c d d"
+  "c d d"
 `;
 const gridTemplateSmallScreens = `
   "a"
@@ -42,10 +42,10 @@ const gridTemplateSmallScreens = `
   "d"
   "d"
   "d"
-  "e"
-  "e"
-  "f"
-  "f"
+  "d"
+  "d"
+  "d"
+  "d"
 `;
 
 const Dashboard = () => {
