@@ -1,7 +1,7 @@
 import BoxHeader from "@/components/BoxHeader";
 import DashboardBox from "@/components/DashboardBox";
 import { useGetKpisQuery } from "@/state/api";
-import { useTheme } from "@mui/material";
+import { useTheme, Typography } from "@mui/material";
 import React, { useEffect, useState, useCallback } from "react";
 import StockForm from "@/components/FieldSelection";
 import {
@@ -301,6 +301,17 @@ const Row1 = () => {
 
           <Tooltip formatter={(value) => value.toFixed(4)} />
           <Legend />
+          {/* {!renderOptimLine &&
+            stockReturns.map((stock) => (
+              <Line
+                key={stock[0]} // Use the stock symbol for the key
+                type="monotone"
+                dataKey={stock[0]} // Use the stock symbol as the dataKey
+                stroke={getLineColor(stockReturns.indexOf(stock))}
+                activeDot={{ r: 8 }}
+              />
+            ))} */}
+
           {stockReturns.map((stock) => (
             <Line
               key={stock[0]} // Use the stock symbol for the key
@@ -387,7 +398,7 @@ const Row1 = () => {
   }, [mcRetRisk]); // This triggers when symbolList is updated
 
   const ReturnVsRiskScatterPlot = (ceilings) => (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width={600} height={300}>
       <ScatterChart>
         <CartesianGrid />
         <XAxis
@@ -406,7 +417,10 @@ const Row1 = () => {
           unit="%"
           label={{ value: "Return (%)", angle: -90, position: "insideLeft" }}
         />
-        <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+        <Tooltip
+          cursor={{ strokeDasharray: "3 3" }}
+          formatter={(value) => value.toFixed(4)} // Format values to 4 decimal places
+        />
         <Scatter name="Portfolio" data={mcRetRisk} fill="#82ca9d" />
       </ScatterChart>
     </ResponsiveContainer>
@@ -453,21 +467,55 @@ const Row1 = () => {
       </DashboardBox>
 
       <DashboardBox gridArea="d">
-        <h2>Optimized Weights</h2>
-        {/* Render only if optimizedWeights has data */}
-        {optimizedWeights ? (
-          <ul>
-            {optimizedWeights.map((weight, index) => (
-              <li key={index}>
-                Stock {symbolList[index]}: {weight.toFixed(2)}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Loading optimized weights...</p>
-        )}
-        <h2>Monte Carlo Risks</h2>
-        <ReturnVsRiskScatterPlot ceilings={ceilings} />
+        <BoxHeader
+          title="Monte Carlo Sampling"
+          subtitle="Return-Risk Over Sampled Portfolio Weights"
+        />
+        <div
+          style={{
+            width: "100%",
+            maxHeight: "100px",
+            overflowY: "auto",
+            padding: "0.5rem",
+            borderRadius: "5px",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <Typography
+            variant="h5"
+            style={{ marginBottom: "-0.1rem", marginLeft: "0.5rem" }}
+          >
+            {"Optimized Weights"}
+          </Typography>
+          <Typography
+            variant="h6"
+            style={{ marginBottom: "-0.1rem", marginLeft: "0.5rem" }}
+          >
+            {optimizedWeights ? (
+              <ul style={{ margin: 0, padding: 0, listStyleType: "none" }}>
+                {optimizedWeights.map((weight, index) => (
+                  <li key={index}>
+                    Stock {symbolList[index]}: {weight.toFixed(2)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Loading optimized weights...</p>
+            )}
+          </Typography>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            height: "70%",
+          }}
+        >
+          <ReturnVsRiskScatterPlot ceilings={ceilings} />
+        </div>
       </DashboardBox>
 
       <DashboardBox gridArea="e"></DashboardBox>
