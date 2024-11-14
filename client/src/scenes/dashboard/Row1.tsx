@@ -22,6 +22,7 @@ import {
 } from "recharts";
 
 import axios from "axios";
+import { isButtonElement } from "react-router-dom/dist/dom";
 
 const Row1 = () => {
   const [candleStickData, setCandleStickData] = useState([]);
@@ -37,6 +38,8 @@ const Row1 = () => {
   const [numData, setNumData] = useState();
   const [portfolioRets, setPortfolioRets] = useState([]);
   const [portfolioRisk, setPortfolioRisk] = useState(null);
+  const [optimPortRets, setOptimPortRets] = useState(null);
+  const [optimPortRisk, setOptimPortRisk] = useState(null);
   const [weightPercent, setWeightPercent] = useState([]);
   const [optimizedWeights, setOptimizedWeights] = useState(null);
   const [mcRisks, setMcRisks] = useState(null);
@@ -124,12 +127,15 @@ const Row1 = () => {
       .slice(1); // Remove the first element
   };
 
-  const getPortfolioRet = (returnVals, weightVals) => {
+  const getPortfolioRet = (returnVals, weightVals, isOptim) => {
     let retPortArr = [];
     const totalShares = weightVals.reduce((acc, val) => acc + Number(val), 0);
+    console.log("SRC!", weightVals);
     const alloc = weightVals.map((weight) => weight / totalShares);
-    setWeightPercent(alloc);
-    console.log("Hey!", weightVals);
+    if (!isOptim) {
+      setWeightPercent(alloc);
+      console.log("Hey!", weightVals);
+    }
 
     for (let time = 1; time !== numData + 1; time++) {
       let retNow = 0;
@@ -138,11 +144,16 @@ const Row1 = () => {
       }
       retPortArr.push(retNow);
     }
-    setPortfolioRets(retPortArr.slice(0, -1));
-    getPortfolioRisk();
+    if (!isOptim) {
+      setPortfolioRets(retPortArr.slice(0, -1));
+      getPortfolioRisk(false);
+    } else {
+      setOptimPortRets(retPortArr.slice(0, -1));
+      getPortfolioRisk(true);
+    }
   };
 
-  const getPortfolioRisk = () => {
+  const getPortfolioRisk = (isOptim) => {
     if (portfolioRets.length > 0) {
       const avgReturn =
         portfolioRets.reduce((acc, val) => acc + val, 0) / numData;
@@ -156,7 +167,11 @@ const Row1 = () => {
       console.log("SHHH");
       console.log(avgReturn);
       console.log(portfolioRets);
-      setPortfolioRisk(portRisk);
+      if (!isOptim) {
+        setPortfolioRisk(portRisk);
+      } else {
+        setOptimPortRisk(portRisk);
+      }
     }
   };
 
@@ -211,16 +226,16 @@ const Row1 = () => {
   useEffect(() => {
     if (retArr.length > 0 && weights.length > 0 && numData) {
       console.log("Lets", weights);
-      getPortfolioRet(retArr, weights);
+      getPortfolioRet(retArr, weights, false);
       if (optimizedWeights != null) {
-        getOptimizedRet(retArr, optimizedWeights);
+        getPortfolioRet(retArr, optimizedWeights, true);
       }
     }
   }, [retArr, weights, numData, optimizedWeights]);
 
-  useEffect(() => {
-    getPortfolioRisk(); // Call this whenever portfolioRets updates
-  }, [portfolioRets, numData, weights]); // Add necessary dependencies
+  // useEffect(() => {
+  //   getPortfolioRisk(); // Call this whenever portfolioRets updates
+  // }, [portfolioRets, numData, weights]); // Add necessary dependencies
 
   // const handleSubmit = (data) => {
   //   setFormData(data); // Save form data on submit
@@ -238,6 +253,7 @@ const Row1 = () => {
 
   const handleOptimBtn = () => {
     setRenderOptimLine(true);
+    handleOptimize();
     console.log("Vuala!");
   };
 
@@ -247,7 +263,12 @@ const Row1 = () => {
     }
   }, [symbolList]); // This triggers when symbolList is updated
 
-  const MultiLineChart = ({ stockReturns, dates, portfolioRets }) => {
+  const MultiLineChart = ({
+    stockReturns,
+    dates,
+    portfolioRets,
+    optimPortRets,
+  }) => {
     // Transform the returns into a format usable by Recharts
     console.log(portfolioRisk);
     const transformedData = dates.map((date, index) => {
@@ -256,7 +277,9 @@ const Row1 = () => {
         result[stock[0]] = stock[index + 1]; // +1 because the first element is the stock name
       });
       result["Portfolio"] = portfolioRets[index];
-
+      if (optimPortRets != null) {
+        result["Optim"] = optimPortRets[index];
+      }
       return result;
     });
 
@@ -292,6 +315,15 @@ const Row1 = () => {
               type="monotone"
               dataKey="Portfolio"
               stroke="#acb89b" // Black color for the portfolio line
+              activeDot={{ r: 8 }}
+              strokeWidth={3}
+            />
+          )}
+          {renderOptimLine && (
+            <Line
+              type="monotone"
+              dataKey="Optim"
+              stroke="#d3113e" // Black color for the portfolio line
               activeDot={{ r: 8 }}
               strokeWidth={3}
             />
@@ -332,6 +364,8 @@ const Row1 = () => {
     stock: symbol,
     weight: parseFloat((weightPercent[idx] ?? 0).toFixed(4)),
   }));
+
+  console.log("test weights", weightPercent);
 
   useEffect(() => {
     if (mcRetRisk != null) {
@@ -403,6 +437,7 @@ const Row1 = () => {
             stockReturns={retArr}
             dates={dates.slice(1)}
             portfolioRets={portfolioRets}
+            optimPortRets={optimPortRets}
           />
         </ResponsiveContainer>
       </DashboardBox>
