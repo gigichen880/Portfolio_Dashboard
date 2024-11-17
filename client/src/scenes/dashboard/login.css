@@ -1,3 +1,60 @@
+/* Container alignment for typing animation */
+.left-side {
+  flex: 1;
+  width: 50vw;
+  background-color: #333333;
+  display: flex;
+  justify-content: flex-start; /* Align content to the left */
+  align-items: flex-start; /* Align content to the top */
+  position: relative; /* Enables positioning of children */
+  padding: 20px; /* General padding */
+}
+
+/* Typing animation text */
+.typing-animation,
+.fixed-text {
+  font-size: 2rem; /* Match font size */
+  font-family: "Courier New", monospace; /* Ensure consistency */
+  color: #ffffff; /* Text color */
+  white-space: nowrap; /* Prevent line breaks */
+  position: absolute; /* Consistent position for both */
+  top: 40%; /* Same vertical alignment */
+  left: 5%; /* Same horizontal alignment */
+  height: 2.5rem; /* Fixed height to prevent layout shifts */
+  text-align: left;
+}
+
+/* Specific animation effect for typing */
+.typing-animation {
+  overflow: hidden; /* Ensures text doesn't spill out */
+  border-right: 3px solid #ffffff; /* Blinking cursor */
+  width: 0; /* Start with no visible width */
+  animation: typing 4s steps(25, end) forwards, blink 0.8s step-end infinite;
+}
+
+/* Final state (fixed text) */
+.fixed-text {
+  width: auto; /* Full width for the static text */
+  border: none; /* No blinking cursor for the fixed text */
+}
+
+/* Keyframes for typing animation */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 25ch; /* Matches the full length of the text */
+  }
+}
+
+/* Blinking cursor animation */
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
 /* General body styles */
 body {
   margin: 0;
@@ -20,7 +77,10 @@ body {
   flex: 1;
   width: 50vw;
   background-color: #333333; /* Background color for left side */
-  /* Optional: Add content or styles for the left side */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
 /* Right side container */
@@ -37,7 +97,7 @@ body {
 }
 /* Typography styles */
 .title {
-  font-size: 30px;
+  font-size: 50px;
   margin-bottom: 20px;
   font-family: Georgia, "Times New Roman", Times, serif;
   color: #ecb7b7; /* White text */
@@ -45,10 +105,12 @@ body {
 
 /* Input field styles */
 .input {
-  width: 90%;
-  max-width: 450px;
-  padding: 10px;
-  margin-bottom: 18px;
+  width: 100%;
+  max-width: 500px;
+  height: 50%;
+  max-height: 50px;
+  padding: 15px;
+  margin-bottom: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
@@ -66,8 +128,10 @@ body {
 
 /* Submit button styles */
 .submitButton {
-  width: 80%;
-  max-width: 450px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 50px;
+  height: 50%;
   padding: 10px;
   font-size: 18px;
   font-family: Georgia, "Times New Roman", Times, serif;
@@ -81,4 +145,26 @@ body {
 
 .submitButton:hover {
   background-color: #fa9bdb;
+}
+
+/* Styling for the Link component */
+.link {
+  font-size: 18px; /* Set font size */
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: #4e73df; /* Choose a clear and visible color for the link */
+  text-decoration: none; /* Remove the default underline */
+  font-weight: 500; /* Make the text a little bolder for better visibility */
+  transition: color 0.3s ease; /* Smooth transition for color change */
+  margin-top: 10px;
+}
+
+.link:hover {
+  color: #2e59d9; /* Change the color on hover to a darker shade */
+  text-decoration: underline; /* Underline the link on hover */
+}
+
+.link:focus {
+  outline: none; /* Remove default focus outline */
+  text-decoration: underline; /* Underline on focus for better accessibility */
+  color: #bf3aef;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { useAuth } from "../AuthContext"; // Adjust the path to your AuthContext file
 import "./login.css";
@@ -6,14 +6,24 @@ import {
   createBrowserRouter,
   RouterProvider,
   useNavigate,
+  Link,
 } from "react-router-dom";
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
+  const [typingFinished, setTypingFinished] = useState(false);
 
   const navigate = useNavigate();
+  useEffect(() => {
+    // Trigger the typing effect
+    const timer = setTimeout(() => {
+      setTypingFinished(true);
+    }, 4000); // Wait for 4 seconds (duration of the animation)
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -46,7 +56,11 @@ const Signup = () => {
   return (
     <div className="page">
       <div className="left-side">
-        <h1>Hello</h1>
+        {typingFinished ? (
+          <div className="fixed-text">Welcome Fellow Investors</div>
+        ) : (
+          <div className="typing-animation">Welcome Fellow Investors</div>
+        )}
       </div>
       <div className="container">
         <h1 className="title">Sign Up</h1>
@@ -76,6 +90,9 @@ const Signup = () => {
           type="password"
         />
         <input className="submitButton" type="submit" onClick={handleSignup} />
+        <Link to="/login" className="link">
+          Back to Login
+        </Link>
       </div>
     </div>
   );

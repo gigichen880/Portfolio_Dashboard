@@ -28,6 +28,7 @@ const Row1 = () => {
   const [candleStickData, setCandleStickData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [userInputFields, setUserInputFields] = useState(null);
   const { palette } = useTheme();
   const { data } = useGetKpisQuery();
   const [symbolList, setSymbolList] = useState([]);
@@ -75,19 +76,20 @@ const Row1 = () => {
         cData.symbol
       );
       setSymbolList(cData.symbol);
-
+      const params = {
+        from: cData.from,
+        to: cData.to,
+        numSpan: cData.numSpan,
+        timeSpan: cData.timeSpan,
+        symbol: cData.symbol,
+      };
       // Construct the URL with parameters based on user input
       const response = await axios.get(`http://localhost:1337/candle/symbols`, {
-        params: {
-          from: cData.from,
-          to: cData.to,
-          numSpan: cData.numSpan,
-          timeSpan: cData.timeSpan,
-          symbol: cData.symbol,
-        },
+        params: params,
       });
       setWeights(cData.weight);
       setCandleStickData(response.data);
+      setUserInputFields(params);
     } catch (e) {
       alert("An error occurred while fetching data");
       console.error(e);

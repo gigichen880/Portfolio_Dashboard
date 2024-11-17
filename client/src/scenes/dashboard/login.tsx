@@ -14,10 +14,21 @@ import {
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [typingFinished, setTypingFinished] = useState(false);
   // const { setUserId } = useAuth();
   // const navigation = useNavigation();
   const history = useNavigate();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Trigger the typing effect
+    const timer = setTimeout(() => {
+      setTypingFinished(true);
+    }, 4000); // Wait for 4 seconds (duration of the animation)
+
+    return () => clearTimeout(timer);
+  }, []);
+
   async function submit(e) {
     e.preventDefault();
     if (email == "") {
@@ -60,9 +71,16 @@ const Login = () => {
 
   return (
     <div className="page">
-      <div className="left-side">Hi!</div>
+      <div className="left-side">
+        {typingFinished ? (
+          <div className="fixed-text">Welcome Fellow Investors</div>
+        ) : (
+          <div className="typing-animation">Welcome Fellow Investors</div>
+        )}
+      </div>
       <div className="container">
         <h1 className="title">Login</h1>
+
         <input
           className="input"
           placeholder="Email"
@@ -77,6 +95,9 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
         <input className="submitButton" type="submit" onClick={submit} />
+        <Link to="/signup" className="link">
+          No account yet? Create one
+        </Link>
       </div>
     </div>
   );
