@@ -277,11 +277,13 @@ const StockForm = ({ handleFormSubmit, ifGetOptim, isOptimBtn }) => {
                     onClick={handleFetchData} // Handles Fetch Data
                     style={{
                       padding: "0.5rem 1.5rem",
+                      // width: "150px",
+                      // height: "40px",
                       backgroundColor: palette.primary.main,
                       border: "none",
                       cursor: "pointer",
                       marginTop: "1rem",
-                      marginRight: "5rem",
+                      marginRight: "2.5rem",
                     }}
                   >
                     Fetch Data
@@ -292,14 +294,34 @@ const StockForm = ({ handleFormSubmit, ifGetOptim, isOptimBtn }) => {
                     disabled={!optimReady} // Enable based on condition
                     onClick={handleGetOptimized} // Handles Get Optimized
                     style={{
+                      // width: "150px",
+                      // height: "40px",
                       padding: "0.5rem 1.5rem",
+                      backgroundColor: palette.primary.main,
+                      border: "none",
+                      cursor: "pointer",
+                      marginTop: "1rem",
+                      marginRight: "2.5rem",
+                    }}
+                  >
+                    Get Optimized
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    disabled={!optimReady} // Enable based on condition
+                    onClick={handleGetOptimized} // Handles Get Optimized
+                    style={{
+                      padding: "0.5rem 1.5rem",
+                      // width: "150px",
+                      // height: "40px",
                       backgroundColor: palette.primary.main,
                       border: "none",
                       cursor: "pointer",
                       marginTop: "1rem",
                     }}
                   >
-                    Get Optimized
+                    Reset
                   </Button>
                 </Box>
               </Grid>

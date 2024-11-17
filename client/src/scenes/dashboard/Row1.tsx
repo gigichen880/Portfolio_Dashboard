@@ -398,7 +398,7 @@ const Row1 = () => {
   }, [mcRetRisk]); // This triggers when symbolList is updated
 
   const ReturnVsRiskScatterPlot = (ceilings) => (
-    <ResponsiveContainer width={600} height={300}>
+    <ResponsiveContainer width={1200} height={300}>
       <ScatterChart>
         <CartesianGrid />
         <XAxis

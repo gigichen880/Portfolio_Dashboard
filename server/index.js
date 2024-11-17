@@ -8,6 +8,7 @@ import morgan from "morgan";
 import kpiRoutes from "./routes/kpi.js";
 import axios from "axios";
 import candleRoutes from "./routes/testData.js";
+import { user_collection, record_collection } from "./mongo.js";
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -44,6 +45,65 @@ app.post("/api/optimize", async (req, res) => {
     res.status(500).send("Error in portfolio optimization");
   }
 });
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  console.log(email, password);
+
+  try {
+    const checkExist = await user_collection.findOne({ email: email });
+    const checkMatch = await user_collection.findOne({
+      email: email,
+      password: password,
+    });
+
+    if (!checkExist) {
+      res.json("notexist");
+    } else if (!checkMatch) {
+      res.json("notmatch");
+    } else {
+      res.json("success");
+    }
+  } catch (e) {
+    res.json("fail");
+  }
+});
+
+app.post("/signup", async (req, res) => {
+  // username, phone, email, password
+  const { username, phone, email, password } = req.body;
+
+  const data = {
+    username: username,
+    phone: phone,
+    email: email,
+    password: password,
+  };
+  console.log(data);
+
+  try {
+    const accountExist = await user_collection.findOne({
+      $or: [{ phone }, { email }],
+    });
+    console.log("who", accountExist);
+    const usernameExist = await user_collection.findOne({ username });
+
+    if (accountExist) {
+      res.json("accountExist");
+    } else if (usernameExist) {
+      res.json("usernameExist");
+    } else {
+      console.log("here!");
+      await user_collection.create(data);
+      return res.status(200).json({ message: "newUser", userId: user._id });
+    }
+  } catch (e) {
+    res.json("fail");
+  }
+});
+
+app.get("/history", async (req, res) => {});
+
+app.get("/history", async (req, res) => {});
 
 console.log(MONGO_URL);
 /* MONGOOSE SETUP */

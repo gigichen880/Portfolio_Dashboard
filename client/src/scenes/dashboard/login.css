@@ -1,0 +1,84 @@
+/* General body styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #000000; /* Black background */
+  color: #ffffff; /* White text */
+  display: flex;
+  height: 100vh;
+}
+
+/* Parent container to hold left and right halves */
+.page {
+  display: flex;
+  width: 100vw; /* Full viewport width */
+  height: 100vh; /* Full viewport height */
+}
+
+/* Left side content */
+.left-side {
+  flex: 1;
+  width: 50vw;
+  background-color: #333333; /* Background color for left side */
+  /* Optional: Add content or styles for the left side */
+}
+
+/* Right side container */
+.container {
+  flex: 1; /* This takes up the other half of the screen */
+  display: flex;
+  justify-content: center; /* Align content horizontally */
+  align-items: center; /* Align content vertically */
+  width: 35vw; /* Take up 50% of the width */
+  height: 100vh; /* Full height */
+  flex-direction: column;
+  padding: 20px;
+  background-color: #333333; /* Dark background for the right side */
+}
+/* Typography styles */
+.title {
+  font-size: 30px;
+  margin-bottom: 20px;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: #ecb7b7; /* White text */
+}
+
+/* Input field styles */
+.input {
+  width: 90%;
+  max-width: 450px;
+  padding: 10px;
+  margin-bottom: 18px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  background-color: #444444; /* Dark input fields */
+  color: white; /* White text inside inputs */
+}
+
+.input:focus {
+  border-color: #fa9bdb;
+  outline: none;
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+/* Submit button styles */
+.submitButton {
+  width: 80%;
+  max-width: 450px;
+  padding: 10px;
+  font-size: 18px;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color: #fff;
+  background-color: #b77da2;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #fa9bdb;
+}
