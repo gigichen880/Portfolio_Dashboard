@@ -100,8 +100,42 @@ app.post("/signup", async (req, res) => {
     res.json("fail");
   }
 });
+// from: cData.from,
+// to: cData.to,
+// numSpan: cData.numSpan,
+// timeSpan: cData.timeSpan,
+// symbol: cData.symbol,
 
-app.get("/history", async (req, res) => {});
+app.post("/record", async (req, res) => {
+  const { params, weightPercents } = req.body;
+  console.log("params", params);
+  const startTime = params.from;
+  const endTime = params.to;
+  const numSpan = params.numSpan;
+  const timeSpanUnit = params.timeSpan;
+  let portfolio = [];
+  for (let pair in zip(params.symbol, weightPercents)) {
+    let symbolName = pair[0];
+    let weight = pair[1];
+    let symPair = { symbolName: symbolName, weight: weight };
+    portfolio.concat(symPair);
+  }
+
+  const data = {
+    portfolio: portfolio,
+    startTime: startTime,
+    endTime: endTime,
+    numSpan: numSpan,
+    timeSpanUnit: timeSpanUnit,
+  };
+  console.log(data);
+  try {
+    await record_collection.create(data);
+    return res.json("success");
+  } catch (e) {
+    res.json("An error occurs when saving query record to mongo");
+  }
+});
 
 app.get("/history", async (req, res) => {});
 
@@ -115,11 +149,5 @@ mongoose
   })
   .then(async () => {
     app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
-
-    /* ADD DATA ONE TIME ONLY OR AS NEEDED */
-    // await mongoose.connection.db.dropDatabase();
-    // KPI.insertMany(kpis);
-    // Product.insertMany(products);
-    // Transaction.insertMany(transactions);
   });
 // .catch((error) => console.log(`${error} did not connect`));

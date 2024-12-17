@@ -97,7 +97,22 @@ const Row1 = () => {
       setLoading(false); // Set loading to false when done
     }
   };
-
+  async function saveRecord(userParams, weightPercents) {
+    await axios
+      .post("http://localhost:1337/record", {
+        userParams,
+        weightPercents,
+      })
+      .then((res) => {
+        if (res.data == "success") {
+          console.log("Save record successfully");
+        }
+      })
+      .catch((e) => {
+        alert("An error occurs when saving query record to mongo");
+        console.log(e);
+      });
+  }
   const handleOptimize = async () => {
     try {
       console.log("Enter Optim", symbolList);
@@ -113,8 +128,11 @@ const Row1 = () => {
         return: response.data.returns[index],
       }));
       setMcRetRisk(data);
-      console.log("DATA?", mcRetRisk);
-      // setImageData(`data:image/png;base64,${response.data.image}`);
+      console.log("userInputFields", userInputFields);
+      console.log("weights", weightPercent);
+      saveRecord(userInputFields, weightPercent);
+
+      // Post data to backend record: userInputFields, portfolioRisk, portfolioRetyrn, response.data.weights(optimweights),
     } catch (error) {
       console.error("Error fetching optimized portfolio:", error);
     }

@@ -44,7 +44,7 @@ const recordSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    required: false,
   },
 
   portfolio: {
@@ -62,9 +62,19 @@ const recordSchema = new mongoose.Schema({
     required: true,
   },
 
+  numSpan: {
+    type: Number,
+    required: true,
+  },
+
+  timeSpanUnit: {
+    type: String,
+    required: true,
+  },
+
   optim: {
     type: [symbolSchema],
-    required: true,
+    required: false,
   },
 });
 
