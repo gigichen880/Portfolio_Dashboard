@@ -22,11 +22,11 @@ const AlertTypePopup = ({ open, onClose, onSubmit }) => {
   const handleBack = () => setStep((prevStep) => prevStep - 1);
   const handleFinish = () => {
     onSubmit({
-      alertType,
-      triggers,
-      riskThreshold,
-      sharpeImprovement,
-      momentum,
+      selectedAlertType: alertType,
+      triggers: triggers,
+      risk: riskThreshold,
+      sharpe: sharpeImprovement,
+      momentum: momentum,
     });
     onClose();
   };

@@ -48,13 +48,13 @@ const Row1 = ({ username, phone, email, password, alertType, triggerType }) => {
     setPopupOpen(false);
   };
 
-  const handlePreferencesSubmit = async (
+  const handlePreferencesSubmit = async ({
     selectedAlertType,
     triggers,
     risk,
     sharpe,
-    momentum
-  ) => {
+    momentum,
+  }) => {
     console.log("Selected alert type:", selectedAlertType);
     console.log("Selected trigger type:", triggers);
 
