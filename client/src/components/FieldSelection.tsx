@@ -21,7 +21,6 @@ const StockForm = ({ handleFormSubmit, ifGetOptim, isOptimBtn }) => {
   const [weightInput, setWeightInput] = useState("");
   const [pair, setPair] = useState([]);
   const [optimReady, setOptimReady] = useState(false);
-  console.log(handleFormSubmit);
   // Function to handle adding new symbols
   const addSymbol = () => {
     let sym = null;

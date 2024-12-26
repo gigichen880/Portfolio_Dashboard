@@ -4,7 +4,7 @@ import { themeSettings } from "./theme";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Navbar from "@/scenes/navbar";
-import Display from "@/scenes/dashboard/index";
+import Dashboard from "@/scenes/dashboard/index";
 import Login from "@/scenes/dashboard/login";
 import Signup from "@/scenes/dashboard/signup";
 
@@ -21,8 +21,8 @@ function App() {
           <Box width="100%" height="100%" padding="1rem 2rem 4rem 2rem">
             <Navbar />
             <Routes>
-              <Route path="/" element={<Display />} />
-              <Route path="/home" element={<Display />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/home" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               {/* <Route path="/predictions" element={<Predictions />} /> */}

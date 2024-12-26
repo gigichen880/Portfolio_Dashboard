@@ -2,6 +2,7 @@ import { Box, useMediaQuery } from "@mui/material";
 import Row1 from "./Row1";
 import Row2 from "./Row2";
 import Row3 from "./Row3";
+import { useLocation } from "react-router-dom";
 
 const gridTemplateLargeScreens = `
   "a b b"
@@ -49,6 +50,13 @@ const gridTemplateSmallScreens = `
 `;
 
 const Dashboard = () => {
+  const location = useLocation();
+  const username = location.state?.username;
+  const phone = location.state?.phone;
+  const email = location.state?.email;
+  const password = location.state?.password;
+  const alertType = location.state?.alertType;
+  const triggerType = location.state?.triggerType;
   const isAboveMediumScreens = useMediaQuery("(min-width: 1200px)");
   return (
     <Box
@@ -70,7 +78,14 @@ const Dashboard = () => {
             }
       }
     >
-      <Row1 />
+      <Row1
+        username={username}
+        phone={phone}
+        email={email}
+        password={password}
+        alertType={alertType}
+        triggerType={triggerType}
+      />
       <Row2 />
       <Row3 />
     </Box>

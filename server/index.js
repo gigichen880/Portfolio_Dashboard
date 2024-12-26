@@ -55,16 +55,55 @@ app.post("/login", async (req, res) => {
       email: email,
       password: password,
     });
+    console.log("checkExist / checkMatch", checkExist, checkMatch);
 
     if (!checkExist) {
       res.json("notexist");
     } else if (!checkMatch) {
       res.json("notmatch");
     } else {
-      res.json("success");
+      // res.json("success");
+      console.log("success");
+      try {
+        const records = await user_collection
+          .find({ email: email, password: password })
+          .select("email password phone username history alertType")
+          .exec();
+        console.log(records);
+        res.status(200).json({ message: "success", overhead: records[0] });
+      } catch (error) {
+        console.error("Error fetching records:", error);
+      }
     }
   } catch (e) {
     res.json("fail");
+  }
+});
+
+app.post("/alertPref", async (req, res) => {
+  const { email, alertType, triggerType, thresholds } = req.body;
+  try {
+    const updatedRecord = await user_collection.findOneAndUpdate(
+      { email }, // match condition
+      {
+        $set: {
+          alertType: alertType,
+          triggerType: triggerType,
+          thresholds: thresholds,
+        },
+      },
+      { new: true }
+    );
+    if (updatedRecord) {
+      console.log("alertType updated successfully:", updatedRecord);
+      res.json("success");
+    } else {
+      console.log("No matching email record found.");
+      res.json("notfound");
+    }
+  } catch (error) {
+    console.error("Error during alertType update", error);
+    res.json("error");
   }
 });
 
@@ -77,14 +116,13 @@ app.post("/signup", async (req, res) => {
     phone: phone,
     email: email,
     password: password,
+    alertType: "null",
   };
-  console.log(data);
 
   try {
     const accountExist = await user_collection.findOne({
       $or: [{ phone }, { email }],
     });
-    console.log("who", accountExist);
     const usernameExist = await user_collection.findOne({ username });
 
     if (accountExist) {
@@ -92,23 +130,17 @@ app.post("/signup", async (req, res) => {
     } else if (usernameExist) {
       res.json("usernameExist");
     } else {
-      console.log("here!");
       await user_collection.create(data);
-      return res.status(200).json({ message: "newUser", userId: user._id });
+      return res.status(200).json({ message: "newUser" });
     }
   } catch (e) {
+    console.log(e);
     res.json("fail");
   }
 });
-// from: cData.from,
-// to: cData.to,
-// numSpan: cData.numSpan,
-// timeSpan: cData.timeSpan,
-// symbol: cData.symbol,
 
 app.post("/record", async (req, res) => {
   const { params, weightPercents } = req.body;
-  console.log("params", params);
   const startTime = params.from;
   const endTime = params.to;
   const numSpan = params.numSpan;
@@ -128,7 +160,6 @@ app.post("/record", async (req, res) => {
     numSpan: numSpan,
     timeSpanUnit: timeSpanUnit,
   };
-  console.log(data);
   try {
     await record_collection.create(data);
     return res.json("success");

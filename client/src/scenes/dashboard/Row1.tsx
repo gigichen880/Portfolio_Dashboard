@@ -1,9 +1,10 @@
 import BoxHeader from "@/components/BoxHeader";
 import DashboardBox from "@/components/DashboardBox";
 import { useGetKpisQuery } from "@/state/api";
-import { useTheme, Typography } from "@mui/material";
+import { useTheme, Typography, Button } from "@mui/material";
 import React, { useEffect, useState, useCallback } from "react";
 import StockForm from "@/components/FieldSelection";
+import AlertTypePopup from "@/components/AlertTypePopup";
 import {
   ResponsiveContainer,
   LineChart,
@@ -24,7 +25,69 @@ import {
 import axios from "axios";
 import { isButtonElement } from "react-router-dom/dist/dom";
 
-const Row1 = () => {
+const Row1 = ({ username, phone, email, password, alertType, triggerType }) => {
+  const [hasPref, setHasPref] = useState(false);
+  console.log(
+    "Enter Row1",
+    username,
+    phone,
+    email,
+    password,
+    alertType,
+    triggerType
+  );
+  const [popupOpen, setPopupOpen] = useState(false);
+
+  useEffect(() => {
+    if (!hasPref) {
+      setPopupOpen(true); // Open the popup if there is no preference
+    }
+  }, [hasPref]); // Trigger effect when `hasPref` changes
+
+  const handleClosePopup = () => {
+    setPopupOpen(false);
+  };
+
+  const handlePreferencesSubmit = async (
+    selectedAlertType,
+    triggers,
+    risk,
+    sharpe,
+    momentum
+  ) => {
+    console.log("Selected alert type:", selectedAlertType);
+    console.log("Selected trigger type:", triggers);
+
+    const thresholds = [];
+    if (triggers.includes("Risk")) thresholds.push(risk);
+    if (triggers.includes("Sharpe")) thresholds.push(sharpe);
+    if (triggers.includes("Momentum")) thresholds.push(momentum);
+
+    console.log("Threshold list:", thresholds);
+
+    try {
+      const res = await axios.post("http://localhost:1337/alertPref", {
+        email,
+        alertType: selectedAlertType,
+        triggerType: triggers,
+        thresholds,
+      });
+
+      if (res.data === "error") {
+        alert("An error occurred. Please try again.");
+      } else if (res.data === "notfound") {
+        alert("Unexpected error. Please try again.");
+      } else {
+        alert("Successfully updated preferences!");
+        setHasPref(true); // Update preference state
+        setPopupOpen(false); // Close popup
+      }
+    } catch (error) {
+      console.error("Failed to update preferences:", error);
+      alert("An error occurred. Please check your connection.");
+    }
+  };
+
   const [candleStickData, setCandleStickData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -68,13 +131,6 @@ const Row1 = () => {
   const fetchCandlestickData = async (cData) => {
     setLoading(true);
     try {
-      console.log(
-        cData.from,
-        cData.to,
-        cData.numSpan,
-        cData.timeSpan,
-        cData.symbol
-      );
       setSymbolList(cData.symbol);
       const params = {
         from: cData.from,
@@ -115,11 +171,9 @@ const Row1 = () => {
   }
   const handleOptimize = async () => {
     try {
-      console.log("Enter Optim", symbolList);
       const response = await axios.post("http://localhost:1337/api/optimize", {
         symbols: symbolList,
       });
-      console.log("Response?", response);
       setOptimizedWeights(response.data.weights);
       setMcReturns(response.data.returns);
       setMcRisks(response.data.risks);
@@ -128,8 +182,6 @@ const Row1 = () => {
         return: response.data.returns[index],
       }));
       setMcRetRisk(data);
-      console.log("userInputFields", userInputFields);
-      console.log("weights", weightPercent);
       saveRecord(userInputFields, weightPercent);
 
       // Post data to backend record: userInputFields, portfolioRisk, portfolioRetyrn, response.data.weights(optimweights),
@@ -150,11 +202,9 @@ const Row1 = () => {
   const getPortfolioRet = (returnVals, weightVals, isOptim) => {
     let retPortArr = [];
     const totalShares = weightVals.reduce((acc, val) => acc + Number(val), 0);
-    console.log("SRC!", weightVals);
     const alloc = weightVals.map((weight) => weight / totalShares);
     if (!isOptim) {
       setWeightPercent(alloc);
-      console.log("Hey!", weightVals);
     }
 
     for (let time = 1; time !== numData + 1; time++) {
@@ -184,9 +234,6 @@ const Row1 = () => {
             .reduce((acc, val) => acc + val, 0)
         ) /
         (numData - 1);
-      console.log("SHHH");
-      console.log(avgReturn);
-      console.log(portfolioRets);
       if (!isOptim) {
         setPortfolioRisk(portRisk);
       } else {
@@ -241,8 +288,6 @@ const Row1 = () => {
       setRetArr(tmpRet);
     }
   }, [candleStickData]); // Depend on candleStickData
-  console.log("rets", portfolioRets);
-  console.log("optimw", optimizedWeights);
   useEffect(() => {
     if (retArr.length > 0 && weights.length > 0 && numData) {
       console.log("Lets", weights);
@@ -253,16 +298,6 @@ const Row1 = () => {
     }
   }, [retArr, weights, numData, optimizedWeights]);
 
-  // useEffect(() => {
-  //   getPortfolioRisk(); // Call this whenever portfolioRets updates
-  // }, [portfolioRets, numData, weights]); // Add necessary dependencies
-
-  // const handleSubmit = (data) => {
-  //   setFormData(data); // Save form data on submit
-  //   fetchCandlestickData(data); // Call fetch function with the submitted data
-  //   // handleOptimize();
-  // };
-  // console.log(handleSubmit); // Should log the function
   const handleSubmit = useCallback(
     (data) => {
       setFormData(data);
@@ -274,7 +309,6 @@ const Row1 = () => {
   const handleOptimBtn = () => {
     setRenderOptimLine(true);
     handleOptimize();
-    console.log("Vuala!");
   };
 
   useEffect(() => {
@@ -290,7 +324,6 @@ const Row1 = () => {
     optimPortRets,
   }) => {
     // Transform the returns into a format usable by Recharts
-    console.log(portfolioRisk);
     const transformedData = dates.map((date, index) => {
       const result = { name: date };
       stockReturns.forEach((stock) => {
@@ -367,8 +400,6 @@ const Row1 = () => {
   const PortfolioPieChart = ({ portfolioWeights }) => {
     // Define colors for each segment
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
-    console.log(weightPercent);
-    console.log(portfolioWeights);
     return (
       // <ResponsiveContainer width="97%" height="90%">
       <PieChart width={400} height={400} cx="50%" cy="50%">
@@ -395,8 +426,6 @@ const Row1 = () => {
     stock: symbol,
     weight: parseFloat((weightPercent[idx] ?? 0).toFixed(4)),
   }));
-
-  console.log("test weights", weightPercent);
 
   useEffect(() => {
     if (mcRetRisk != null) {
@@ -447,8 +476,17 @@ const Row1 = () => {
   );
   return (
     <>
+      <div>
+        {popupOpen && (
+          <AlertTypePopup
+            open={popupOpen}
+            onClose={handleClosePopup}
+            onSubmit={handlePreferencesSubmit}
+          />
+        )}
+      </div>
       <DashboardBox gridArea="a">
-        <BoxHeader title="Exploration" subtitle="Customize your portfolio" />
+        <BoxHeader title={username} subtitle="Customize your portfolio" />
         <ResponsiveContainer width="100%" height={300}>
           <StockForm
             handleFormSubmit={handleSubmit}

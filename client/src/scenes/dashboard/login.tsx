@@ -41,14 +41,12 @@ const Login = () => {
     }
 
     try {
-      console.log(email, password);
       await axios
         .post("http://localhost:1337/login", {
           email: email,
           password: password,
         })
         .then((res) => {
-          console.log(res);
           if (res.data == "notmatch") {
             alert("Wrong password");
             return;
@@ -56,7 +54,9 @@ const Login = () => {
             alert("User does not exist");
             return;
           } else {
-            navigate("/");
+            navigate("/", {
+              state: res.data.overhead,
+            });
           }
         })
         .catch((e) => {

@@ -35,6 +35,7 @@ const Signup = () => {
         body: JSON.stringify({ username, phone, email, password }),
       });
       const data = await response.json();
+      console.log("????", data);
 
       if (data === "accountExist") {
         alert("Account Exists");
@@ -42,8 +43,10 @@ const Signup = () => {
         alert("Username Exists");
       } else if (data.message === "newUser") {
         alert("Signup Successful");
-
-        navigate("/");
+        const alertType = "null";
+        navigate("/", {
+          state: { username, phone, email, password, alertType },
+        });
       } else {
         alert("Error");
       }

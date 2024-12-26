@@ -12,11 +12,13 @@ class DiffusionGraphConv(nn.Module):
         super(DiffusionGraphConv, self).__init__()
         self.conv1 = GCNConv(in_channels, out_channels)
         self.conv2 = GCNConv(in_channels, out_channels)
+        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x, edge_index):
-        # Forward and backward diffusion
-        out = self.conv1(x, edge_index) + self.conv2(x, edge_index)
-        return F.relu(out)
+        out = self.conv1(x, edge_index)
+        out = self.dropout(F.relu(out))
+        out += self.conv2(x, edge_index)
+        return out
 
 class DCRNNCell(nn.Module):
     def __init__(self, input_dim, hidden_dim):
@@ -24,6 +26,7 @@ class DCRNNCell(nn.Module):
         self.graph_conv = DiffusionGraphConv(input_dim, hidden_dim)
         self.gru = nn.GRUCell(hidden_dim, hidden_dim)
         self.bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x, edge_index, h):
         x = self.graph_conv(x, edge_index)  # x shape: [T, N, hidden_dim]
@@ -31,6 +34,7 @@ class DCRNNCell(nn.Module):
         for t in range(x.size(0)):
             h_t = self.gru(x[t], h) 
             h_t = self.bn(h_t)
+            h_t = self.dropout(h_t)
             h_new.append(h_t)
         h_new = torch.stack(h_new, dim=0)
 
@@ -60,54 +64,81 @@ class DCRNN(nn.Module):
 import yfinance as yf
 import pandas as pd
 
-start_date, end_date = '2024-01-01', '2024-08-10'
-symbols = ['AAPL', 'MSFT', 'GOOG', 'AMZN']
-stock_data = yf.download(symbols, start=start_date, end=end_date)['Adj Close']
-stock_data.to_csv("stock_cache.csv", index=False)
-# stock_data = pd.read_csv("stock_cache.csv")
+start_date, end_date = '2022-01-01', '2024-12-10'
+# # symbols = ['AAPL', 'MSFT', 'GOOG', 'AMZN']
+# symbols = pd.read_csv("sp500_syms.csv")['Symbol'].tolist()
+# stock_data = pd.DataFrame()
+# for symbol in symbols:
+#     stock_ = pd.DataFrame()
+#     stock_ = yf.download(symbol, start=start_date, end=end_date)['Adj Close']
+#     if not stock_.empty:
+#       stock_data = pd.concat([stock_data, stock_], axis = 1)
+
+# stock_data.to_csv("stock_cache.csv", index=False)
+stock_data = pd.read_csv("stock_cache.csv")
 returns = stock_data.pct_change().dropna()
 momentum = stock_data.pct_change(periods=5).dropna()
-
-sma_10 = stock_data.rolling(window=10).mean()  
-
+sma_10 = stock_data.rolling(window=30).mean()  
 volatility = returns.rolling(window=10).std()
 X = pd.DataFrame()
 
-for sym in range(len(symbols)):
+for sym in range(len(stock_data.columns)):
     df_ = pd.concat([returns.iloc[:, sym], sma_10.iloc[:, sym], volatility.iloc[:, sym]], axis=1).dropna(axis=0)
     X = pd.concat([X, df_], axis = 1)
 
 # Convert to tensor: [T, N, F], where F = number of features
 X = X.values  
-X = X.reshape(X.shape[0], len(symbols), 3)
-X = torch.tensor(X, dtype=torch.float32)
+X = X.reshape(X.shape[0], len(stock_data.columns), 3)
+from sklearn.preprocessing import StandardScaler
+x_shape = X.shape
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X.reshape(-1, X.shape[2])).reshape(x_shape)
+X = torch.tensor(X_scaled, dtype=torch.float32)
 
 correlation_matrix = returns.corr()
 edges = []
 
-threshold = 0.5
+threshold = 0.7
 for i in range(correlation_matrix.shape[0]):
     for j in range(i + 1, correlation_matrix.shape[1]):
         if abs(correlation_matrix.iloc[i, j]) > threshold:
-            print("???")
             edges.append([i, j])
             edges.append([j, i]) 
 
 edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
 y = torch.tensor(momentum.values, dtype=torch.float)  # Shape [T', N]
 y = y.unsqueeze(2)
+
 lim = min(X.shape[0], y.shape[0])
 X = X[0:lim]
 y = y[0:lim]
 
+print(torch.isnan(X).sum(), torch.isnan(y).sum())  # Check for NaNs
 
 input_dim = X.shape[2]
 hidden_dim = 16
 output_dim = 1
 num_layers = 2
 
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+    elif isinstance(m, nn.GRUCell):
+        # Initialize GRUCell weights
+        nn.init.xavier_uniform_(m.weight_ih)  # Input-hidden weights
+        nn.init.xavier_uniform_(m.weight_hh)  # Hidden-hidden weights
+        if m.bias_ih is not None:
+            nn.init.zeros_(m.bias_ih)
+        if m.bias_hh is not None:
+            nn.init.zeros_(m.bias_hh)
+
+
 model = DCRNN(input_dim, hidden_dim, output_dim, num_layers)
-optimizer = optim.Adam(model.parameters(), lr=0.01)
+model.apply(init_weights)
+
+optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-5)
 loss_fn = nn.MSELoss()
 epochs = 100
 for epoch in range(epochs):
@@ -115,8 +146,9 @@ for epoch in range(epochs):
     optimizer.zero_grad()
     output, _ = model(X, edge_index)  
     loss = loss_fn(output, y)
-
+    # print(output)
     loss.backward()
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     optimizer.step()
     if (epoch + 1) % 10 == 0:
         print(f'Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}')

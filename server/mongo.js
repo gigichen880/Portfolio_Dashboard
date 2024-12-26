@@ -33,6 +33,15 @@ const userSchema = new mongoose.Schema({
     required: false,
   },
   history: [{ type: mongoose.Schema.Types.ObjectId, ref: "Record" }],
+  alertType: {
+    type: [String],
+  },
+  triggerType: {
+    type: [String],
+  },
+  thresholds: {
+    type: [Number],
+  },
 });
 
 const symbolSchema = new mongoose.Schema({
