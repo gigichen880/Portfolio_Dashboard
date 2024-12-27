@@ -11,7 +11,6 @@ import candleRoutes from "./routes/testData.js";
 import {
   user_collection,
   record_collection,
-  stock_collection,
 } from "./mongo.js";
 
 /* CONFIGURATIONS */
@@ -24,6 +23,8 @@ app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 /* ROUTES */
 app.use("/kpi", kpiRoutes);
@@ -194,66 +195,7 @@ app.post("/record", async (req, res) => {
 
 app.get("/history", async (req, res) => {});
 
-app.post("/api/savestock", async (req, res) => {
-  console.log("Enter api/savestock");
-  const { stockDocument } = req.body;
-  print(stockDocument);
 
-  if (!stockDocument || !stockDocument.symbol || !stockDocument.timeSeries) {
-    return res.status(400).json({ error: "Invalid stockDocument format" });
-  }
-
-  try {
-    // Check if the stock already exists
-    const existingStock = await stock_collection.findOne({
-      symbol: stockDocument.symbol,
-    });
-
-    if (!existingStock) {
-      // No record exists: Insert the new stock data
-      const newStock = await stock_collection.create({
-        symbol: stockDocument.symbol,
-        timeSeries: stockDocument.timeSeries,
-        lastUpdated: new Date(),
-      });
-
-      return res.status(200).json({
-        message: "Stock data inserted successfully",
-        data: newStock,
-      });
-    } else {
-      // Record exists: Merge and de-duplicate time series
-      const existingData = existingStock.timeSeries;
-      const newData = stockDocument.timeSeries;
-      const combinedData = [
-        ...existingData,
-        ...newData.filter(
-          (newEntry) =>
-            !existingData.some(
-              (existingEntry) => existingEntry.date === newEntry.date
-            )
-        ),
-      ];
-
-      // Sort by timestamp
-      combinedData.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      // Update the time series and save
-      existingStock.timeSeries = combinedData;
-      existingStock.lastUpdated = new Date();
-
-      const updatedStock = await existingStock.save();
-
-      return res.status(200).json({
-        message: "Stock data updated successfully",
-        data: updatedStock,
-      });
-    }
-  } catch (error) {
-    console.error("Error saving stock data:", error);
-    return res.status(500).json({ error: "Failed to save/update stock data" });
-  }
-});
 
 console.log(MONGO_URL);
 /* MONGOOSE SETUP */
