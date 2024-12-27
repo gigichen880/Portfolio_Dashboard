@@ -87,5 +87,63 @@ const recordSchema = new mongoose.Schema({
   },
 });
 
+const stockDataSchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true,
+    index: true,
+  },
+  open: {
+    type: Number,
+    required: true,
+  },
+  high: {
+    type: Number,
+    required: true,
+  },
+  low: {
+    type: Number,
+    required: true,
+  },
+  close: {
+    type: Number,
+    required: true,
+  },
+  volume: {
+    type: Number,
+    required: true,
+  },
+});
+
+const stockSchema = new mongoose.Schema({
+  symbol: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  sector: {
+    type: String,
+    default: null,
+  },
+  industry: {
+    type: String,
+    default: null,
+  },
+  timeSeries: {
+    type: [stockDataSchema],
+    required: true,
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 export const user_collection = mongoose.model("User", userSchema);
 export const record_collection = mongoose.model("Record", recordSchema);
+export const stock_collection = mongoose.model("Stock", stockSchema);

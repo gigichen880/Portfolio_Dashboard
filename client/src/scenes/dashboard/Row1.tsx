@@ -81,6 +81,8 @@ const Row1 = ({ username, phone, email, password, alertType, triggerType }) => {
         alert("Successfully updated preferences!");
         setHasPref(true); // Update preference state
         setPopupOpen(false); // Close popup
+        if (selectedAlertType.includes("Email")) {
+        }
       }
     } catch (error) {
       console.error("Failed to update preferences:", error);
@@ -307,6 +309,7 @@ const Row1 = ({ username, phone, email, password, alertType, triggerType }) => {
   );
 
   const handleOptimBtn = () => {
+    console.log("Enter Handle Optim Btn in Row1.tsx");
     setRenderOptimLine(true);
     handleOptimize();
   };
@@ -336,6 +339,18 @@ const Row1 = ({ username, phone, email, password, alertType, triggerType }) => {
       return result;
     });
 
+    const handleMomentumPrediction = async () => {
+      try {
+        const response = await axios.post(
+          "http://localhost:1337/api/momentum",
+          {
+            symbols: symbolList,
+          }
+        );
+      } catch (error) {
+        console.error("Error when predicting future momentums:", error);
+      }
+    };
     return (
       <ResponsiveContainer width="97%" height="90%">
         <LineChart data={transformedData}>

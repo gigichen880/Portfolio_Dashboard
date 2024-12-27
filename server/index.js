@@ -28,9 +28,29 @@ app.use("/candle", candleRoutes);
 const MONGO_URL =
   "mongodb+srv://breechen88:Bree20058874824*@findash.lb1gi.mongodb.net/?retryWrites=true&w=majority&appName=FinDash";
 
+app.post("/api/momentum", async (req, res) => {
+  try {
+    console.log("Enter Express /api/momentum");
+    const symbols = req.body.symbols;
+    // const flaskResponse = await axios.post(
+    //   "http://127.0.0.1:5002/predict-momentum",
+    //   {
+    //     symbols,
+    //   }
+    // );
+    // res.json(flaskResponse.data);
+  } catch (error) {
+    console.error(
+      "Error fetching from Flask when predicting momentums:",
+      error
+    );
+    res.status(500).send("Error in momentum prediction");
+  }
+});
+
 app.post("/api/optimize", async (req, res) => {
   try {
-    console.log("Enter Express JS");
+    console.log("Enter Express /api/optimze (weights)");
     const symbols = req.body.symbols; // Symbols sent from React
     const flaskResponse = await axios.post(
       "http://127.0.0.1:5002/optimize-portfolio",
@@ -41,7 +61,7 @@ app.post("/api/optimize", async (req, res) => {
 
     res.json(flaskResponse.data); // Return Flask's response to React
   } catch (error) {
-    console.error("Error fetching from Flask:", error);
+    console.error("Error fetching from Flask when optimizing weights:", error);
     res.status(500).send("Error in portfolio optimization");
   }
 });
