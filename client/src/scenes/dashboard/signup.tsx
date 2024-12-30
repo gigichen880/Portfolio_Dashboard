@@ -14,7 +14,22 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [typingFinished, setTypingFinished] = useState(false);
+  const requirements = {
+    lowercase: /[a-z]/,
+    uppercase: /[A-Z]/,
+    number: /\d/,
+    special: /[@$!%*?&]/,
+    length: /.{8,}/,
+  };
 
+  // State to track validation
+  const [validation, setValidation] = useState({
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    special: false,
+    length: false,
+  });
   const navigate = useNavigate();
   useEffect(() => {
     // Trigger the typing effect
@@ -24,7 +39,21 @@ const Signup = () => {
 
     return () => clearTimeout(timer);
   }, []);
+  // Handle password validation
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
 
+    // Check each requirement
+    const newValidation = {
+      lowercase: requirements.lowercase.test(value),
+      uppercase: requirements.uppercase.test(value),
+      number: requirements.number.test(value),
+      special: requirements.special.test(value),
+      length: requirements.length.test(value),
+    };
+
+    setValidation(newValidation);
+  };
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
@@ -89,9 +118,32 @@ const Signup = () => {
           className="input"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => handlePasswordChange(e.target.value)}
           type="password"
         />
+
+        {/* Password Requirements */}
+        <div className="password-requirements">
+          <ul>
+            <li className={validation.lowercase ? "valid" : "invalid"}>
+              {validation.lowercase ? "✓" : "✗"} At least one lowercase letter
+            </li>
+            <li className={validation.uppercase ? "valid" : "invalid"}>
+              {validation.uppercase ? "✓" : "✗"} At least one uppercase letter
+            </li>
+            <li className={validation.number ? "valid" : "invalid"}>
+              {validation.number ? "✓" : "✗"} At least one number
+            </li>
+            <li className={validation.special ? "valid" : "invalid"}>
+              {validation.special ? "✓" : "✗"} At least one special character
+              (@$!%*?&)
+            </li>
+            <li className={validation.length ? "valid" : "invalid"}>
+              {validation.length ? "✓" : "✗"} Minimum 8 characters
+            </li>
+          </ul>
+        </div>
+
         <input className="submitButton" type="submit" onClick={handleSignup} />
         <Link to="/login" className="link">
           Back to Login

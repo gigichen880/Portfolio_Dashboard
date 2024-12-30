@@ -8,10 +8,7 @@ import morgan from "morgan";
 import kpiRoutes from "./routes/kpi.js";
 import axios from "axios";
 import candleRoutes from "./routes/testData.js";
-import {
-  user_collection,
-  record_collection,
-} from "./mongo.js";
+import { user_collection, record_collection } from "./mongo.js";
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -29,6 +26,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 /* ROUTES */
 app.use("/kpi", kpiRoutes);
 app.use("/candle", candleRoutes);
+import sendWelcomeEmail from "../client/src/components/sendWelcomeEmail.js";
 
 const MONGO_URL =
   "mongodb+srv://breechen88:Bree20058874824*@findash.lb1gi.mongodb.net/?retryWrites=true&w=majority&appName=FinDash";
@@ -156,6 +154,7 @@ app.post("/signup", async (req, res) => {
       res.json("usernameExist");
     } else {
       await user_collection.create(data);
+      await sendWelcomeEmail(email, username);
       return res.status(200).json({ message: "newUser" });
     }
   } catch (e) {
@@ -194,8 +193,6 @@ app.post("/record", async (req, res) => {
 });
 
 app.get("/history", async (req, res) => {});
-
-
 
 console.log(MONGO_URL);
 /* MONGOOSE SETUP */
